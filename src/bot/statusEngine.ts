@@ -14,6 +14,11 @@ import type {
  * Turns a student's timetable plus today's overrides into a display-ready
  * {@link StatusResult}. Pure with respect to time: every function takes the
  * "current" instant from the caller, so the whole engine is testable.
+ *
+ * Status lines are written to survive a phone: an embed field wraps at roughly
+ * 30 characters on mobile Discord, so the wording carries no scaffolding the
+ * emoji already implies. A long course name can still wrap — that part is the
+ * timetable's, not ours.
  */
 
 const TIMEZONE = 'America/Toronto';
@@ -223,7 +228,7 @@ function nextRemaining(
 
 function nextEventText(next: ResolvedSlot | null): string | undefined {
   if (!next) return undefined;
-  return `Prochain cours à ${next.slot.startTime} — ${describeSlot(next.slot)}`;
+  return `Puis ${next.slot.startTime} · ${describeSlot(next.slot)}`;
 }
 
 function resolveSlots(daySlots: ClassSlot[], now: Date): ResolvedSlot[] {
@@ -326,7 +331,7 @@ function computeStatus(
 
   // 1. Away for the whole day.
   if (override.absentToday) {
-    return { name, emoji: '🔴', statusText: "Absent aujourd'hui" };
+    return { name, emoji: '🔴', statusText: 'Absent' };
   }
 
   // 2. Went home at the break.
@@ -335,9 +340,7 @@ function computeStatus(
     return {
       name,
       emoji: '🔴',
-      statusText: destination
-        ? `Parti à la pause (${destination})`
-        : 'Parti à la pause',
+      statusText: destination ? `Parti → ${destination}` : 'Parti à la pause',
     };
   }
 
@@ -354,7 +357,7 @@ function computeStatus(
     } catch {
       return null; // Malformed time: fall through to the normal status.
     }
-    return { name, emoji: '🟢', statusText: `À l'école jusqu'à ${until}` };
+    return { name, emoji: '🟢', statusText: `À l'école → ${until}` };
   };
 
   // 3. Nothing scheduled — weekend, or an empty weekday.
@@ -380,7 +383,7 @@ function computeStatus(
       stayingAtSchool() ?? {
         name,
         emoji: '🔴',
-        statusText: `Pas là (avant ${firstSlot.slot.startTime})`,
+        statusText: `Arrive à ${firstSlot.slot.startTime}`,
       }
     );
   }
@@ -391,7 +394,7 @@ function computeStatus(
       stayingAtSchool() ?? {
         name,
         emoji: '🔴',
-        statusText: `Pas là (depuis ${lastSlot.slot.endTime})`,
+        statusText: `Parti depuis ${lastSlot.slot.endTime}`,
       }
     );
   }
@@ -412,7 +415,7 @@ function computeStatus(
       return {
         name,
         emoji: '🟢',
-        statusText: 'En pause (cours terminé)',
+        statusText: 'Cours terminé',
         nextEvent: nextEventText(nextRemaining(slots, currentIndex + 1, cancelled)),
       };
     }
@@ -420,9 +423,8 @@ function computeStatus(
     return {
       name,
       emoji: '🟡',
-      // The class itself is the useful part when someone is busy: what it is
-      // and where, not just when it ends.
-      statusText: `En cours : ${describeSlot(current.slot)} · jusqu'à ${current.slot.endTime}`,
+      // The 🟡 already says "in class", so the words go to the class itself.
+      statusText: `${describeSlot(current.slot)} → ${current.slot.endTime}`,
     };
   }
 
@@ -439,7 +441,7 @@ function computeStatus(
     return {
       name,
       emoji: '🟢',
-      statusText: `En pause: ${pauseNote}`,
+      statusText: `Pause : ${pauseNote}`,
       nextEvent: nextEventText(upcoming),
     };
   }
@@ -449,9 +451,7 @@ function computeStatus(
   return {
     name,
     emoji: '🟢',
-    statusText: upcoming
-      ? `En pause (jusqu'à ${upcoming.slot.startTime})`
-      : 'En pause',
+    statusText: upcoming ? `Pause → ${upcoming.slot.startTime}` : 'Pause',
   };
 }
 
