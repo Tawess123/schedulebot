@@ -505,8 +505,7 @@
       /*
        * Secondary actions carry both a label and an icon; below the breakpoint
        * the label is hidden and only the icon remains. Touch targets keep their
-       * full height — the problem on a phone is horizontal room and the number
-       * of controls, not the size of each one.
+       * full height — what costs room on a phone is the words, not the height.
        */
       button .lbl {
         margin-left: 0.35rem;
@@ -519,44 +518,16 @@
         section {
           padding: 0.75rem;
         }
-
-        /* Was width:100%, which pushed every row action onto a third line. */
         input.inline {
-          width: auto;
-          flex: 1 1 6rem;
-          min-width: 0;
+          width: 100%;
         }
 
+        /* Secondary actions keep their icon and drop the words. */
         button.compact .lbl {
           display: none;
         }
         button.compact {
           padding: 0.4rem 0.6rem;
-        }
-
-        .roster-row .name {
-          flex: 1 0 100%;
-        }
-
-        /* One class per line reads better than three cramped columns. */
-        .slot-row input[type='time'] {
-          flex: 1 1 6rem;
-          width: auto;
-        }
-        .slot-row input[type='text'] {
-          flex: 1 1 100%;
-        }
-        .event-row input[type='date'],
-        .event-row input[type='time'] {
-          flex: 1 1 6rem;
-          width: auto;
-        }
-        .event-row input[type='text'] {
-          flex: 1 1 100%;
-        }
-
-        .actions button {
-          flex: 1;
         }
       }
     </style>

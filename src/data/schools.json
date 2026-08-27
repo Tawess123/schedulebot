@@ -600,5 +600,38 @@
       }
     ],
     "thumbnailUrl": "https://bishopsforum.ubishops.ca/wp-content/uploads/2017/03/Dawson-Logo.jpg"
+  },
+  {
+    "name": "TestCol",
+    "colorHex": "#123456",
+    "students": [
+      {
+        "name": "Zoe",
+        "schedule": {
+          "0": [
+            {
+              "startTime": "09:00",
+              "endTime": "10:00",
+              "location": "A1"
+            }
+          ],
+          "1": [],
+          "2": [],
+          "3": [],
+          "4": []
+        },
+        "discordId": "777"
+      },
+      {
+        "name": "Amy",
+        "schedule": {
+          "0": [],
+          "1": [],
+          "2": [],
+          "3": [],
+          "4": []
+        }
+      }
+    ]
   }
 ]
