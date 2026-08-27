@@ -3,6 +3,17 @@
 Tested target: Ubuntu Server 22.04 / 24.04 LTS. The bot and the web panel run in
 a single container; all persistent state is JSON on a bind mount.
 
+This guide is written for the intended setup: the panel on port **3751**,
+reachable at **https://bot.tawess123.ca**.
+
+> **This will not run on cPanel shared hosting.** cPanel's "Setup Node.js App"
+> runs behind Phusion Passenger, which starts a process when an HTTP request
+> arrives and stops it when traffic goes quiet. This app is the opposite shape:
+> it holds a permanent WebSocket to Discord's gateway and fires cron jobs at
+> class boundaries, whether or not anyone opens the panel. Passenger would keep
+> killing the gateway connection, and many shared hosts also cap long-lived
+> outbound sockets and background processes. Use the VPS.
+
 ---
 
 ## 1. Prerequisites
@@ -54,8 +65,10 @@ Before deploying, at <https://discord.com/developers/applications>:
 2. Under **Bot → Privileged Gateway Intents**, enable **Server Members Intent**
    and **Message Content Intent**. The bot uses both; without them it will fail
    to log in.
-3. Invite the bot with the scopes `bot` plus these permissions: *View Channel*,
-   *Send Messages*, *Manage Messages*, *Read Message History*, *Manage Roles*.
+3. Invite the bot with **both** scopes `bot` **and** `applications.commands` —
+   the second is what lets `/horaire` and `/cours` register. Grant these
+   permissions: *View Channel*, *Send Messages*, *Manage Messages*,
+   *Read Message History*, *Manage Roles*.
 4. In **Server Settings → Roles**, drag the bot's own role **above** the pause
    role. Discord will not let a bot assign a role that sits higher than its own.
 
@@ -82,15 +95,17 @@ Edit `.env`:
 DISCORD_TOKEN=your-bot-token
 CHANNEL_ID=123456789012345678
 PAUSE_ROLE_ID=123456789012345678
-WEB_PORT=3000
+WEB_PORT=3751
 WEB_SECRET=a-long-random-string
-PUBLIC_URL=https://panel.example.com
+PUBLIC_URL=https://bot.tawess123.ca
 ```
 
-`PUBLIC_URL` is the address students will open from Discord. Leave it blank
-during local testing (it falls back to `http://localhost:WEB_PORT`); set it to
-the real domain once Nginx is in front (section 7), or the `/horaire` links will
-point at the server's own localhost and fail for everyone else.
+`WEB_PORT=3751` is picked to sit clear of anything else on the VPS. Compose
+reads it straight from this file, so nothing else needs editing.
+
+`PUBLIC_URL` is the address students will open from Discord. It must be the
+public domain, not localhost, or the `/horaire` links will point at the server's
+own loopback and fail for everyone else. Set it before the first start.
 
 Generate a strong secret — it is the **only** thing protecting the admin API:
 
@@ -127,18 +142,42 @@ The shape is:
   {
     "name": "Montmorency",
     "colorHex": "#005EB8",
-    "bannerUrl": "https://…",      // optional
-    "thumbnailUrl": "https://…",   // optional
+    "bannerUrl": "https://…",      // optional, big image at the bottom
+    "thumbnailUrl": "https://…",   // optional, small logo top-right
+    "places": ["Cafétéria", "Bibliothèque"],   // optional, for 📍 Ma position
     "students": [
       {
         "name": "Alexandre",
         "discordId": "",           // fill in later via the panel
         "schedule": {
           "0": [                    // 0 = Monday … 4 = Friday
-            { "startTime": "08:30", "endTime": "11:20", "location": "B2431" }
+            {
+              "startTime": "08:30",
+              "endTime": "11:20",
+              "course": "Calcul II",  // either one is enough,
+              "room": "B2431"         // both together is better
+            }
           ],
           "1": [], "2": [], "3": [], "4": []
-        }
+        },
+
+        // Everything below is optional.
+        "periods": [                // a different week between two dates
+          {
+            "from": "2026-09-01",
+            "to": "2026-09-14",
+            "label": "Rentrée",
+            "schedule": { "0": [], "1": [], "2": [], "3": [], "4": [] }
+          }
+        ],
+        "events": [                 // one-off classes on a given date
+          {
+            "date": "2026-09-10",
+            "startTime": "13:00",
+            "endTime": "16:00",
+            "course": "Examen final"
+          }
+        ]
       }
     ]
   }
@@ -147,6 +186,14 @@ The shape is:
 
 All five weekday keys must be present; a free day is `[]`. Times are 24-hour
 `HH:MM` and are interpreted in **America/Toronto**, which is hard-coded.
+
+A class needs a `course`, a `room`, or both — never neither. Older timetables
+using a single `location` field still work; the panel splits it into the right
+field the next time you edit that class.
+
+**Images must be png, jpg, gif or webp.** Discord's embed proxy does not render
+SVG, so the API refuses an `.svg` URL rather than leaving a blank space in the
+channel.
 
 `src/data/` is bind-mounted into the container, so this file and the
 runtime-generated `overrides.json` survive rebuilds. Because the mount *shadows*
@@ -165,11 +212,12 @@ Check that it came up:
 
 ```bash
 docker compose ps
-curl -s -H "Authorization: Bearer $WEB_SECRET" http://localhost:3000/api/status
+curl -s -H "Authorization: Bearer $WEB_SECRET" http://localhost:3751/api/status
 ```
 
-The bot posts one embed per school in `CHANNEL_ID` and attaches the button row
-to the last one.
+The bot posts **one message** in `CHANNEL_ID` carrying one embed per school,
+with a single row of buttons under it. On the first start after an upgrade it
+also deletes the older per-school messages it used to post.
 
 > **A bad `DISCORD_TOKEN` crash-loops the container.** The process exits when
 > the Discord login fails, and `restart: unless-stopped` starts it again. If
@@ -193,10 +241,16 @@ docker compose logs --since=10m schedulebot    # last ten minutes
 What healthy startup looks like:
 
 ```
-[web] panneau disponible sur http://localhost:3000
+[web] panneau disponible sur http://localhost:3751
 [bot] connecté comme schedulebot#1234
-[bot] 9 mises à jour planifiées
+[bot] /horaire et /cours enregistrées sur 1 serveur(s)
+[bot] 34 mises à jour planifiées
 ```
+
+The last number is one cron job per distinct class boundary across every
+timetable, rotation week and dated event — it grows with your data. A 60-second
+heartbeat also re-checks the statuses and only edits Discord when something
+actually changed.
 
 Common failures:
 
@@ -207,6 +261,8 @@ Common failures:
 | `Used disallowed intents` | Privileged intents not enabled (section 1) |
 | `CHANNEL_ID … is not a text channel` | Wrong ID, or the bot cannot see the channel |
 | `pause role … not found` | Wrong `PAUSE_ROLE_ID`, or the bot's role sits too low |
+| `could not register /horaire` | Bot invited without the `applications.commands` scope |
+| `WEB_SECRET is not set` | `.env` missing the secret — the web server refuses to start |
 
 ---
 
@@ -239,19 +295,30 @@ docker compose up -d --build
 
 ---
 
-## 7. Optional: Nginx reverse proxy with HTTPS
+## 7. Nginx reverse proxy with HTTPS
+
+Not optional here: `PUBLIC_URL` is an `https://` address, and the `/horaire`
+links students receive point at it.
+
+**Point the DNS first.** Add an `A` record for `bot.tawess123.ca` to the VPS's
+public IP and wait for it to resolve — Certbot validates over HTTP and will fail
+otherwise:
+
+```bash
+dig +short bot.tawess123.ca
+```
 
 By default Compose publishes the panel on every interface, so
-`http://your-server:3000` is reachable from the open internet with no TLS. When
-you put Nginx in front, bind the container to loopback instead — edit
-`docker-compose.yml`:
+`http://your-server:3751` would be reachable from the open internet with no TLS.
+Bind it to loopback instead — edit `docker-compose.yml`:
 
 ```yaml
     ports:
       - '127.0.0.1:${WEB_PORT:-3000}:${WEB_PORT:-3000}'
 ```
 
-Then `docker compose up -d` to apply.
+The `:-3000` is only Compose's fallback when `WEB_PORT` is unset; your `.env`
+sets 3751, so that is what gets published. Then `docker compose up -d` to apply.
 
 Install Nginx and Certbot:
 
@@ -264,10 +331,10 @@ Create `/etc/nginx/sites-available/schedulebot`:
 ```nginx
 server {
     listen 80;
-    server_name panel.example.com;
+    server_name bot.tawess123.ca;
 
     location / {
-        proxy_pass         http://127.0.0.1:3000;
+        proxy_pass         http://127.0.0.1:3751;
         proxy_http_version 1.1;
         proxy_set_header   Host              $host;
         proxy_set_header   X-Real-IP         $remote_addr;
@@ -284,7 +351,7 @@ sudo ln -s /etc/nginx/sites-available/schedulebot /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
 
-sudo certbot --nginx -d panel.example.com
+sudo certbot --nginx -d bot.tawess123.ca
 ```
 
 Certbot rewrites the server block for TLS and installs a renewal timer. Confirm
@@ -298,8 +365,11 @@ Firewall, if `ufw` is active:
 
 ```bash
 sudo ufw allow 'Nginx Full'
-sudo ufw delete allow 3000/tcp   # if you had opened it directly
+sudo ufw delete allow 3751/tcp   # if you had opened it directly
 ```
+
+Port 3751 never needs to be open to the internet: after the loopback change,
+only Nginx reaches it.
 
 Two things to know about the panel's security model:
 
@@ -334,7 +404,8 @@ JavaScript's safe integer range, so unquoting one silently corrupts it.
 
 ### Linking a student through the web panel
 
-1. Open the panel (`https://panel.example.com`, or `http://server-ip:3000`).
+1. Open the panel at `https://bot.tawess123.ca` (or `http://server-ip:3751`
+   before Nginx is in front).
 2. In **Réglages**, paste your `WEB_SECRET` into *Mot de passe principal* and press
    **Enregistrer**. It is kept in that browser's `localStorage`; the connection
    dot in the header turns green once the token is accepted.
@@ -367,4 +438,49 @@ Two consequences worth knowing:
 
 To add someone new, use **Ajouter un étudiant** in the same panel: enter a name,
 optionally the Discord ID, then add class slots per weekday with start time, end
-time and room. Empty days are fine.
+time, and a course name and/or a room. Empty days are fine.
+
+---
+
+## 9. What students can do once they are linked
+
+Everything below needs their `discordId` filled in (section 8).
+
+### Buttons under the status message
+
+| Button | Effect |
+|---|---|
+| ✅ Cours terminé | Marks the current class as over — they read as free |
+| 🚫 Cours annulé | Marks the current class cancelled |
+| ⏭️ Annuler le prochain | Same, for the next class of the day |
+| 🏃 Parti à la pause | Left the building, with an optional destination |
+| 🏫 Je reste à l'école | Stays available past the timetable, until a given time |
+| 📍 Ma position | Shares where they are, from the school's `places` list or free text |
+| 🛌 Absent aujourd'hui | Away all day |
+| ↩️ Annuler mes changements | Wipes everything they declared today |
+
+A position only shows while the student is free — in class, the timetable
+already says where they are. All of it resets on its own at midnight,
+America/Toronto.
+
+Fill each school's **Lieux de rencontre** in the panel (comma separated:
+`Cafétéria, Bibliothèque, Agora`) so the 📍 button offers a dropdown instead of
+asking them to type.
+
+### Slash commands
+
+```
+/horaire                                        personal link to their timetable
+/cours debut:13:00 fin:15:00 local:B2431        add a last-minute class
+/cours debut:9h30 fin:11:00 cours:Examen date:demain
+```
+
+`/cours` takes `cours:` and/or `local:` — either one is enough. `date:` accepts
+`aujourd'hui` (the default), `demain`, `2026-09-10` or `10/09`, and times accept
+`13:00` as well as `13h00`. The class is added immediately and the bot re-arms
+its schedule so the new time triggers an update.
+
+### Writing in the status channel
+
+Anything a linked student types in `CHANNEL_ID` is deleted and becomes their
+pause note for the day. Anyone else's message is simply deleted.
