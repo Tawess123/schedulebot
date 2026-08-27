@@ -45,6 +45,7 @@ import {
   getNextClassIndex,
   getTodaySlots,
 } from './statusEngine.js';
+import { describeSlot } from '../shared/types.js';
 import type { School, StatusResult, Student } from '../shared/types.js';
 import {
   DEFAULT_TOKEN_TTL_SECONDS,
@@ -197,10 +198,10 @@ async function registerCommands(): Promise<void> {
           .setRequired(true),
       )
       .addStringOption((option) =>
-        option
-          .setName('local')
-          .setDescription('Local ou nom du cours, ex. B2431')
-          .setRequired(true),
+        option.setName('cours').setDescription('Nom du cours, ex. Calcul II'),
+      )
+      .addStringOption((option) =>
+        option.setName('local').setDescription('Local, ex. B2431'),
       )
       .addStringOption((option) =>
         option
@@ -282,7 +283,8 @@ async function handleAddClassCommand(
 
   const startTime = normalizeTime(interaction.options.getString('debut', true));
   const endTime = normalizeTime(interaction.options.getString('fin', true));
-  const location = interaction.options.getString('local', true).trim();
+  const course = (interaction.options.getString('cours') ?? '').trim();
+  const room = (interaction.options.getString('local') ?? '').trim();
   const date = resolveDateOption(
     interaction.options.getString('date') ?? '',
     new Date(),
@@ -302,15 +304,19 @@ async function handleAddClassCommand(
     );
     return;
   }
-  if (!location) {
-    await interaction.editReply('📍 Il faut un local ou un nom de cours.');
+  // Either half identifies the class well enough; both is better.
+  if (!course && !room) {
+    await interaction.editReply(
+      '📍 Indique au moins `cours:` ou `local:` (les deux fonctionnent aussi).',
+    );
     return;
   }
 
-  const events = [
-    ...(found.student.events ?? []),
-    { date, startTime, endTime, location },
-  ].sort(
+  const event = { date, startTime, endTime };
+  if (course) Object.assign(event, { course });
+  if (room) Object.assign(event, { room });
+
+  const events = [...(found.student.events ?? []), event].sort(
     (a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime),
   );
 
@@ -328,7 +334,7 @@ async function handleAddClassCommand(
   await triggerUpdate();
 
   await interaction.editReply(
-    `✅ Ajouté : **${location}** le ${date} de ${startTime} à ${endTime}.\n` +
+    `✅ Ajouté : **${describeSlot(event)}** le ${date} de ${startTime} à ${endTime}.\n` +
       'Retire-le depuis le panneau (`/horaire`) si besoin.',
   );
 }
@@ -543,7 +549,6 @@ function buildEmbed(
   school: School,
   statuses: StatusResult[],
   now: Date,
-  allowBanner: boolean,
 ): EmbedBuilder {
   const embed = new EmbedBuilder()
     // Embed titles do not render markdown, so caps carry the emphasis here.
@@ -551,9 +556,9 @@ function buildEmbed(
     .setDescription(`Dernière mise à jour : ${HM_FORMATTER.format(now)}`)
     .setColor(parseColor(school.colorHex));
 
-  // Only the first school gets the big image: three stacked banners turn the
-  // message into a wall of pictures.
-  if (allowBanner && school.bannerUrl) embed.setImage(school.bannerUrl);
+  // Every school shows its own banner. Stacking several makes a tall message,
+  // which is the admin's call to make: use the thumbnail for a compact logo.
+  if (school.bannerUrl) embed.setImage(school.bannerUrl);
   if (school.thumbnailUrl) embed.setThumbnail(school.thumbnailUrl);
 
   embed.addFields(
@@ -633,9 +638,7 @@ async function updateLoop(force: boolean): Promise<void> {
 
   const embeds = groups
     .slice(0, MAX_EMBEDS)
-    .map((group, index) =>
-      buildEmbed(group.school, group.statuses, now, index === 0),
-    );
+    .map((group) => buildEmbed(group.school, group.statuses, now));
   const payload = { embeds, components: buildMainView() };
 
   const existingId = getStatusMessageIds()[STATUS_MESSAGE_KEY];
@@ -812,9 +815,15 @@ function withIndex(existing: number[] | undefined, index: number): number[] {
   return existing?.includes(index) ? existing : [...(existing ?? []), index];
 }
 
-function describeSlot(student: Student, now: Date, index: number): string {
+function describeStudentSlot(
+  student: Student,
+  now: Date,
+  index: number,
+): string {
   const slot = getTodaySlots(student, now)[index];
-  return slot ? `${slot.location} (${slot.startTime}–${slot.endTime})` : 'ce cours';
+  return slot
+    ? `${describeSlot(slot)} (${slot.startTime}–${slot.endTime})`
+    : 'ce cours';
 }
 
 async function handleButton(interaction: ButtonInteraction): Promise<void> {
@@ -880,7 +889,7 @@ async function handleButton(interaction: ButtonInteraction): Promise<void> {
       setOverride(student.name, {
         finishedClasses: withIndex(override.finishedClasses, index),
       });
-      message = `✅ ${describeSlot(student, now, index)} marqué comme terminé.`;
+      message = `✅ ${describeStudentSlot(student, now, index)} marqué comme terminé.`;
       break;
     }
 
@@ -893,7 +902,7 @@ async function handleButton(interaction: ButtonInteraction): Promise<void> {
       setOverride(student.name, {
         cancelledClasses: withIndex(override.cancelledClasses, index),
       });
-      message = `🚫 ${describeSlot(student, now, index)} marqué comme annulé.`;
+      message = `🚫 ${describeStudentSlot(student, now, index)} marqué comme annulé.`;
       break;
     }
 
@@ -906,7 +915,7 @@ async function handleButton(interaction: ButtonInteraction): Promise<void> {
       setOverride(student.name, {
         cancelledClasses: withIndex(override.cancelledClasses, index),
       });
-      message = `🚫 ${describeSlot(student, now, index)} marqué comme annulé.`;
+      message = `🚫 ${describeStudentSlot(student, now, index)} marqué comme annulé.`;
       break;
     }
 

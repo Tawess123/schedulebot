@@ -1,4 +1,5 @@
 import { getOverride, getSchools } from '../data/dataManager.js';
+import { describeSlot } from '../shared/types.js';
 import type {
   ClassSlot,
   SchedulePeriod,
@@ -222,7 +223,7 @@ function nextRemaining(
 
 function nextEventText(next: ResolvedSlot | null): string | undefined {
   if (!next) return undefined;
-  return `Prochain cours à ${next.slot.startTime} (${next.slot.location})`;
+  return `Prochain cours à ${next.slot.startTime} — ${describeSlot(next.slot)}`;
 }
 
 function resolveSlots(daySlots: ClassSlot[], now: Date): ResolvedSlot[] {
@@ -258,6 +259,8 @@ export function getTodaySlots(student: Student, now: Date): ClassSlot[] {
     ...events.map((event) => ({
       startTime: event.startTime,
       endTime: event.endTime,
+      course: event.course,
+      room: event.room,
       location: event.location,
     })),
   ];
@@ -417,7 +420,9 @@ function computeStatus(
     return {
       name,
       emoji: '🟡',
-      statusText: `En cours (pause à ${current.slot.endTime})`,
+      // The class itself is the useful part when someone is busy: what it is
+      // and where, not just when it ends.
+      statusText: `En cours : ${describeSlot(current.slot)} · jusqu'à ${current.slot.endTime}`,
     };
   }
 

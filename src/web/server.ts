@@ -129,15 +129,39 @@ function isNonEmptyString(value: unknown): value is string {
 function isClassSlot(value: unknown): value is ClassSlot {
   if (typeof value !== 'object' || value === null) return false;
   const slot = value as Partial<ClassSlot>;
-  return (
-    // Times are validated here rather than at render time: a bad one would
-    // otherwise throw inside the embed loop and blank the whole channel.
+
+  // Times are validated here rather than at render time: a bad one would
+  // otherwise throw inside the embed loop and blank the whole channel.
+  const timesOk =
     typeof slot.startTime === 'string' &&
     TIME_PATTERN.test(slot.startTime) &&
     typeof slot.endTime === 'string' &&
-    TIME_PATTERN.test(slot.endTime) &&
-    isNonEmptyString(slot.location)
-  );
+    TIME_PATTERN.test(slot.endTime);
+
+  // A course name, a room, or both — but not an unlabelled block of time.
+  const labelled =
+    isNonEmptyString(slot.course) ||
+    isNonEmptyString(slot.room) ||
+    isNonEmptyString(slot.location);
+
+  return timesOk && labelled;
+}
+
+/** Keep only the fields we store, dropping blanks and the legacy label. */
+function normaliseSlot(slot: ClassSlot): ClassSlot {
+  const out: ClassSlot = { startTime: slot.startTime, endTime: slot.endTime };
+
+  const course = slot.course?.trim();
+  const room = slot.room?.trim();
+  if (course) out.course = course;
+  if (room) out.room = room;
+
+  // Neither given: keep the legacy single label rather than guessing which of
+  // the two it was. The panel splits it the next time a human edits the slot.
+  const legacy = slot.location?.trim();
+  if (!course && !room && legacy) out.location = legacy;
+
+  return out;
 }
 
 /** Validate one week: five weekday keys, each an array of slots. */
@@ -152,9 +176,9 @@ function parseWeek(raw: unknown, label: string): WeeklySchedule | string {
       continue;
     }
     if (!Array.isArray(slots) || !slots.every(isClassSlot)) {
-      return `"${label}.${day}" must be an array of { startTime, endTime, location } with HH:MM times`;
+      return `"${label}.${day}" must be an array of slots with HH:MM times and a course or a room`;
     }
-    week[day] = slots;
+    week[day] = slots.map(normaliseSlot);
   }
 
   return week;
@@ -223,15 +247,10 @@ function parseEvents(raw: unknown): DatedEvent[] | string {
       return `"events[${index}].date" must be YYYY-MM-DD`;
     }
     if (!isClassSlot(item)) {
-      return `"events[${index}]" needs startTime, endTime (HH:MM) and location`;
+      return `"events[${index}]" needs startTime, endTime (HH:MM) and a course or a room`;
     }
 
-    const event: DatedEvent = {
-      date,
-      startTime: item.startTime,
-      endTime: item.endTime,
-      location: item.location,
-    };
+    const event: DatedEvent = { date, ...normaliseSlot(item) };
     if (replacesDay) event.replacesDay = true;
     events.push(event);
   }

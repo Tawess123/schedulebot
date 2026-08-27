@@ -1011,7 +1011,16 @@
                 date: event.date,
                 startTime: event.startTime,
                 endTime: event.endTime,
-                location: event.location,
+                course:
+                  event.course ||
+                  (event.location && !looksLikeRoom(event.location)
+                    ? event.location
+                    : ''),
+                room:
+                  event.room ||
+                  (event.location && looksLikeRoom(event.location)
+                    ? event.location
+                    : ''),
                 replacesDay: !!event.replacesDay,
               };
             }),
@@ -1031,18 +1040,26 @@
           var events = [];
           plan.events.forEach(function (event) {
             var filled =
-              event.date && event.startTime && event.endTime && event.location.trim();
+              event.date &&
+              event.startTime &&
+              event.endTime &&
+              (event.course.trim() || event.room.trim());
             var partial =
               !filled &&
-              (event.date || event.startTime || event.endTime || event.location.trim());
+              (event.date ||
+                event.startTime ||
+                event.endTime ||
+                event.course.trim() ||
+                event.room.trim());
             if (partial) invalid = true;
             if (!filled) return;
             var out = {
               date: event.date,
               startTime: event.startTime,
               endTime: event.endTime,
-              location: event.location.trim(),
             };
+            if (event.course.trim()) out.course = event.course.trim();
+            if (event.room.trim()) out.room = event.room.trim();
             if (event.replacesDay) out.replacesDay = true;
             events.push(out);
           });
@@ -1078,16 +1095,34 @@
           return state.drafts[schoolName];
         }
 
+        /** `B2431` and `CSBB1` are rooms; `Mathématiques` is not. */
+        function looksLikeRoom(text) {
+          return !/\s/.test(text) && /\d/.test(text);
+        }
+
+        /** A class needs a name, a room, or both. */
+        function slotFilled(slot) {
+          return Boolean(
+            slot.startTime &&
+              slot.endTime &&
+              (slot.course.trim() || slot.room.trim()),
+          );
+        }
+
         /** Copy one stored WeeklySchedule into the editor's array-of-5-days shape. */
         function scheduleToDraft(week) {
           var stored = week || {};
           return [0, 1, 2, 3, 4].map(function (day) {
             var slots = stored[day] || stored[String(day)] || [];
             return slots.map(function (slot) {
+              // A legacy single label lands in whichever field fits: a code
+              // containing a digit is a room, anything else is a course name.
+              var legacy = slot.course || slot.room ? '' : slot.location || '';
               return {
                 startTime: slot.startTime,
                 endTime: slot.endTime,
-                location: slot.location,
+                course: slot.course || (legacy && !looksLikeRoom(legacy) ? legacy : ''),
+                room: slot.room || (legacy && looksLikeRoom(legacy) ? legacy : ''),
               };
             });
           });
@@ -1102,13 +1137,20 @@
           var invalid = false;
 
           draftSchedule.forEach(function (slots, dayIndex) {
-            schedule[dayIndex] = slots.filter(function (slot) {
-              var filled = slot.startTime && slot.endTime && slot.location.trim();
-              var partial =
-                !filled && (slot.startTime || slot.endTime || slot.location.trim());
-              if (partial) invalid = true;
-              return filled;
-            });
+            schedule[dayIndex] = slots
+              .filter(function (slot) {
+                var filled = slotFilled(slot);
+                var touched =
+                  slot.startTime || slot.endTime || slot.course.trim() || slot.room.trim();
+                if (!filled && touched) invalid = true;
+                return filled;
+              })
+              .map(function (slot) {
+                var out = { startTime: slot.startTime, endTime: slot.endTime };
+                if (slot.course.trim()) out.course = slot.course.trim();
+                if (slot.room.trim()) out.room = slot.room.trim();
+                return out;
+              });
           });
 
           return { schedule: schedule, invalid: invalid };
@@ -1420,11 +1462,20 @@
                   }),
                   el('input', {
                     type: 'text',
-                    value: event.location,
-                    placeholder: 'Examen, sortie, local\u2026',
-                    'aria-label': 'Description',
+                    value: event.course,
+                    placeholder: 'Examen, sortie\u2026',
+                    'aria-label': 'Nom',
                     oninput: function (e) {
-                      event.location = e.target.value;
+                      event.course = e.target.value;
+                    },
+                  }),
+                  el('input', {
+                    type: 'text',
+                    value: event.room,
+                    placeholder: 'Local',
+                    'aria-label': 'Local',
+                    oninput: function (e) {
+                      event.room = e.target.value;
                     },
                   }),
                   el('label', { class: 'replaces' }, [
@@ -1468,7 +1519,7 @@
                   class: 'ghost',
                   text: '+ Cours',
                   onclick: function () {
-                    slots.push({ startTime: '', endTime: '', location: '' });
+                    slots.push({ startTime: '', endTime: '', course: '', room: '' });
                     renderStudents();
                   },
                 }),
@@ -1499,12 +1550,22 @@
                   }),
                   el('input', {
                     type: 'text',
-                    value: slot.location,
-                    placeholder: 'Local ou cours',
+                    value: slot.course,
+                    placeholder: 'Nom du cours',
                     'data-k': key + '-c',
+                    'aria-label': 'Nom du cours',
+                    oninput: function (event) {
+                      slot.course = event.target.value;
+                    },
+                  }),
+                  el('input', {
+                    type: 'text',
+                    value: slot.room,
+                    placeholder: 'Local',
+                    'data-k': key + '-d',
                     'aria-label': 'Local',
                     oninput: function (event) {
-                      slot.location = event.target.value;
+                      slot.room = event.target.value;
                     },
                   }),
                   el('button', {

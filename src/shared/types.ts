@@ -15,14 +15,45 @@ export const WEEKDAYS = {
   4: 'Vendredi',
 } as const satisfies Record<Weekday, string>;
 
-/** One class in a student's day. */
+/**
+ * One class in a student's day.
+ *
+ * A class needs a name, a room, or both — never neither. {@link location} is
+ * the older single-label form kept so existing timetables keep working; it is
+ * read as a fallback and replaced by `course`/`room` the next time the slot is
+ * saved from the panel.
+ */
 export interface ClassSlot {
   /** Start of the class, 24h `HH:MM`. */
   startTime: string;
   /** End of the class, 24h `HH:MM`. */
   endTime: string;
-  /** Room code or course name, e.g. `B204` or `Mathématiques`. */
-  location: string;
+  /** Course name, e.g. `Mathématiques`. Optional when {@link room} is set. */
+  course?: string;
+  /** Room code, e.g. `B2431`. Optional when {@link course} is set. */
+  room?: string;
+  /** @deprecated Legacy single label; use {@link course} and {@link room}. */
+  location?: string;
+}
+
+/**
+ * How a class reads on screen: `Maths (B2431)`, or just whichever half exists.
+ * Shared by the bot, the engine and the panel so they never drift apart.
+ */
+export function describeSlot(slot: ClassSlot): string {
+  const course = slot.course?.trim();
+  // A legacy `location` stands in for the room when nothing better is set.
+  const room = slot.room?.trim() || slot.location?.trim();
+
+  if (course && room) return `${course} (${room})`;
+  return course || room || 'Cours';
+}
+
+/** True when a slot carries at least one of the two labels. */
+export function hasSlotLabel(slot: ClassSlot): boolean {
+  return Boolean(
+    slot.course?.trim() || slot.room?.trim() || slot.location?.trim(),
+  );
 }
 
 /**
@@ -36,15 +67,9 @@ export type WeeklySchedule = Record<Weekday, ClassSlot[]>;
  * make-up lecture. Merged into whatever the recurring timetable says for that
  * day, unless {@link replacesDay} is set.
  */
-export interface DatedEvent {
+export interface DatedEvent extends ClassSlot {
   /** `YYYY-MM-DD` in the school timezone. */
   date: string;
-  /** Start of the event, 24h `HH:MM`. */
-  startTime: string;
-  /** End of the event, 24h `HH:MM`. */
-  endTime: string;
-  /** Room code or label, e.g. `Examen final`. */
-  location: string;
   /** Ignore the recurring timetable that day and use only the events. */
   replacesDay?: boolean;
 }
