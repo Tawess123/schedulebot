@@ -364,66 +364,65 @@
       },
       {
         "name": "Tristan",
-        "discordId": "",
         "schedule": {
           "0": [
             {
               "startTime": "08:55",
               "endTime": "12:30",
-              "location": "C1581"
+              "room": "C1581"
             },
             {
               "startTime": "14:25",
               "endTime": "17:05",
-              "location": "C1581"
+              "room": "C1581"
             }
           ],
           "1": [
             {
               "startTime": "08:00",
               "endTime": "09:45",
-              "location": "B3300"
+              "room": "B3300"
             },
             {
               "startTime": "09:50",
               "endTime": "11:35",
-              "location": "C3588"
+              "room": "C3588"
             },
             {
               "startTime": "14:25",
               "endTime": "17:05",
-              "location": "C1581"
+              "room": "C1581"
             }
           ],
           "2": [
             {
               "startTime": "08:00",
               "endTime": "08:50",
-              "location": "C1549"
+              "room": "C1549"
             },
             {
               "startTime": "08:55",
               "endTime": "18:00",
-              "location": "C1549"
+              "room": "C1549"
             }
           ],
           "3": [
             {
               "startTime": "08:00",
               "endTime": "09:45",
-              "location": "B3300"
+              "room": "B3300"
             },
             {
               "startTime": "09:50",
               "endTime": "11:35",
-              "location": "L1760"
+              "room": "L1760"
             }
           ],
           "4": [
             {
               "startTime": "11:40",
               "endTime": "14:20",
-              "location": "A2205"
+              "room": "A2205"
             }
           ]
         }
@@ -501,7 +500,7 @@
         }
       }
     ],
-    "thumbnailUrl": "https://rccfc.ca/wp-content/uploads/2023/09/logo_collegedeboisdeboulogne.svg"
+    "thumbnailUrl": "https://www.cmontmorency.qc.ca/wp-content/uploads/2025/08/Logo_Horizontal_Coul-1.png"
   },
   {
     "name": "Dawson",
@@ -599,39 +598,6 @@
         }
       }
     ],
-    "thumbnailUrl": "https://bishopsforum.ubishops.ca/wp-content/uploads/2017/03/Dawson-Logo.jpg"
-  },
-  {
-    "name": "TestCol",
-    "colorHex": "#123456",
-    "students": [
-      {
-        "name": "Zoe",
-        "schedule": {
-          "0": [
-            {
-              "startTime": "09:00",
-              "endTime": "10:00",
-              "location": "A1"
-            }
-          ],
-          "1": [],
-          "2": [],
-          "3": [],
-          "4": []
-        },
-        "discordId": "777"
-      },
-      {
-        "name": "Amy",
-        "schedule": {
-          "0": [],
-          "1": [],
-          "2": [],
-          "3": [],
-          "4": []
-        }
-      }
-    ]
+    "thumbnailUrl": "https://www.cmontmorency.qc.ca/wp-content/uploads/2025/08/Logo_Horizontal_Coul-1.png"
   }
 ]
