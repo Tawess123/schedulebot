@@ -55,6 +55,35 @@ const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 /** Longest rotation we accept, to keep the editor and the payload sane. */
 const MAX_CYCLE_WEEKS = 6;
 
+/**
+ * Validate a banner or thumbnail URL.
+ *
+ * Any raster format Discord can proxy is fine — png, jpg, gif, webp — and the
+ * extension is not checked, because plenty of CDN links have none. Two cases
+ * are rejected outright because they fail silently otherwise: a non-http URL,
+ * and SVG, which Discord's image proxy does not render in embeds. Better a
+ * clear error here than a blank space in the channel.
+ */
+function validateImageUrl(field: string, value: string): string | null {
+  if (!value) return null; // Empty means "remove the image".
+
+  let parsed: URL;
+  try {
+    parsed = new URL(value);
+  } catch {
+    return `"${field}" must be a full URL starting with https://`;
+  }
+
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    return `"${field}" must be an http(s) URL`;
+  }
+  if (parsed.pathname.toLowerCase().endsWith('.svg')) {
+    return `Discord n'affiche pas les SVG dans les embeds — utilise un png, jpg, gif ou webp pour "${field}"`;
+  }
+
+  return null;
+}
+
 let webSecret = '';
 
 /* -------------------------------------------------------------------------- */
@@ -336,9 +365,12 @@ function parseSchool(body: unknown): School | string {
     colorHex: input.colorHex.trim(),
     students: [],
   };
-  if (isNonEmptyString(input.bannerUrl)) school.bannerUrl = input.bannerUrl.trim();
-  if (isNonEmptyString(input.thumbnailUrl)) {
-    school.thumbnailUrl = input.thumbnailUrl.trim();
+  for (const field of ['bannerUrl', 'thumbnailUrl'] as const) {
+    if (!isNonEmptyString(input[field])) continue;
+    const value = input[field].trim();
+    const problem = validateImageUrl(field, value);
+    if (problem) return problem;
+    school[field] = value;
   }
   if (input.places !== undefined) {
     const parsed = parsePlaces(input.places);
@@ -373,7 +405,11 @@ function parseSchoolPatch(body: unknown): Partial<School> | string {
   for (const field of ['bannerUrl', 'thumbnailUrl'] as const) {
     if (input[field] === undefined) continue;
     if (typeof input[field] !== 'string') return `"${field}" must be a string`;
-    patch[field] = input[field].trim();
+
+    const value = input[field].trim();
+    const problem = validateImageUrl(field, value);
+    if (problem) return problem;
+    patch[field] = value;
   }
 
   if (input.places !== undefined) {

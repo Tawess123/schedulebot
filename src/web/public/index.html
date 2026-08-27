@@ -502,6 +502,16 @@
         }
       }
 
+      /*
+       * Secondary actions carry both a label and an icon; below the breakpoint
+       * the label is hidden and only the icon remains. Touch targets keep their
+       * full height — the problem on a phone is horizontal room and the number
+       * of controls, not the size of each one.
+       */
+      button .lbl {
+        margin-left: 0.35rem;
+      }
+
       @media (max-width: 34rem) {
         .wrap {
           padding: 0.5rem 0.5rem 3rem;
@@ -509,8 +519,44 @@
         section {
           padding: 0.75rem;
         }
+
+        /* Was width:100%, which pushed every row action onto a third line. */
         input.inline {
-          width: 100%;
+          width: auto;
+          flex: 1 1 6rem;
+          min-width: 0;
+        }
+
+        button.compact .lbl {
+          display: none;
+        }
+        button.compact {
+          padding: 0.4rem 0.6rem;
+        }
+
+        .roster-row .name {
+          flex: 1 0 100%;
+        }
+
+        /* One class per line reads better than three cramped columns. */
+        .slot-row input[type='time'] {
+          flex: 1 1 6rem;
+          width: auto;
+        }
+        .slot-row input[type='text'] {
+          flex: 1 1 100%;
+        }
+        .event-row input[type='date'],
+        .event-row input[type='time'] {
+          flex: 1 1 6rem;
+          width: auto;
+        }
+        .event-row input[type='text'] {
+          flex: 1 1 100%;
+        }
+
+        .actions button {
+          flex: 1;
         }
       }
     </style>
@@ -573,16 +619,16 @@
             </div>
             <div>
               <label for="ns-banner">Bannière — grande image en bas</label>
-              <input id="ns-banner" type="url" placeholder="https://…/banniere.png" />
+              <input id="ns-banner" type="url" placeholder="https://…/banniere.jpg" />
             </div>
             <div>
               <label for="ns-thumb">Vignette — petit logo en haut à droite</label>
-              <input id="ns-thumb" type="url" placeholder="https://…/logo.png" />
+              <input id="ns-thumb" type="url" placeholder="https://…/logo.jpg" />
             </div>
           </div>
           <p class="muted" style="margin: 0.5rem 0 0">
-            Les deux images sont des URL publiques affichées dans l'embed Discord.
-            Laissez vide pour n'en afficher aucune.
+            URL publiques affichées dans l'embed Discord — png, jpg, gif ou webp.
+            Discord n'affiche pas les SVG. Laissez vide pour aucune image.
           </p>
           <div class="actions">
             <button id="btn-add-school">Ajouter l'école</button>
@@ -641,6 +687,21 @@
 
         /* ---------------- utilities ---------------- */
 
+        /**
+         * A button that keeps its icon on a phone and drops the words. The
+         * accessible name stays on the element, so screen readers and tooltips
+         * are unaffected by the CSS that hides the label.
+         */
+        function iconButton(icon, label, props) {
+          var node = el('button', props);
+          node.className = (props.class || '') + ' compact';
+          node.textContent = icon;
+          node.appendChild(el('span', { class: 'lbl', text: label }));
+          node.setAttribute('aria-label', label);
+          node.setAttribute('title', label);
+          return node;
+        }
+
         function el(tag, props, kids) {
           var node = document.createElement(tag);
           if (props) {
@@ -661,6 +722,42 @@
 
         function clear(node) {
           while (node.firstChild) node.removeChild(node.firstChild);
+        }
+
+        /**
+         * Rebuild `node` without losing the reader's place.
+         *
+         * Emptying a container collapses the page, the browser clamps scrollTop
+         * to the new (tiny) maximum, and refilling it cannot undo that — so the
+         * view jumps to the top on every "+ Cours". Holding the old height
+         * across the swap stops the clamp from ever happening, and the focused
+         * field is restored afterwards so typing is not interrupted.
+         */
+        function rebuild(node, fill) {
+          var height = node.offsetHeight;
+          var active = document.activeElement;
+          var marker = active && node.contains(active) ? active.dataset.k : null;
+          var caret = null;
+          if (marker && typeof active.selectionStart === 'number') {
+            caret = active.selectionStart;
+          }
+
+          if (height) node.style.minHeight = height + 'px';
+          clear(node);
+          fill(node);
+          node.style.minHeight = '';
+
+          if (!marker) return;
+          var restored = node.querySelector('[data-k="' + marker + '"]');
+          if (!restored) return;
+          restored.focus();
+          if (caret !== null && typeof restored.setSelectionRange === 'function') {
+            try {
+              restored.setSelectionRange(caret, caret);
+            } catch (err) {
+              // Not every input type supports a caret; focus alone is enough.
+            }
+          }
         }
 
         function toast(message, kind) {
@@ -838,9 +935,8 @@
               chipCell,
               el('td', { class: 'muted', text: described.details || '—' }),
               el('td', {}, [
-                el('button', {
+                iconButton('🗑️', 'Effacer', {
                   class: 'danger',
-                  text: 'Effacer',
                   onclick: function () {
                     clearOverride(name);
                   },
@@ -1409,11 +1505,13 @@
             );
 
             slots.forEach(function (slot, slotIndex) {
+              var key = 'slot-' + dayIndex + '-' + slotIndex;
               block.appendChild(
                 el('div', { class: 'slot-row' }, [
                   el('input', {
                     type: 'time',
                     value: slot.startTime,
+                    'data-k': key + '-a',
                     'aria-label': 'Début',
                     oninput: function (event) {
                       slot.startTime = event.target.value;
@@ -1422,6 +1520,7 @@
                   el('input', {
                     type: 'time',
                     value: slot.endTime,
+                    'data-k': key + '-b',
                     'aria-label': 'Fin',
                     oninput: function (event) {
                       slot.endTime = event.target.value;
@@ -1431,6 +1530,7 @@
                     type: 'text',
                     value: slot.location,
                     placeholder: 'Local ou cours',
+                    'data-k': key + '-c',
                     'aria-label': 'Local',
                     oninput: function (event) {
                       slot.location = event.target.value;
@@ -1668,7 +1768,62 @@
             });
         }
 
-        /** The four inputs shared by the create and edit school forms. */
+        /**
+         * A URL field with a live thumbnail, so a broken or SVG link is obvious
+         * here rather than as a blank space in Discord.
+         */
+        function buildImageField(label, value, placeholder, onChange) {
+          var preview = el('img', {
+            alt: '',
+            style:
+              'max-height:2rem;max-width:4rem;border-radius:4px;display:none;' +
+              'object-fit:contain;background:var(--bg)',
+          });
+          var note = el('span', { class: 'muted', style: 'font-size:.72rem' });
+
+          function refresh(url) {
+            var trimmed = (url || '').trim();
+            preview.style.display = 'none';
+            note.textContent = '';
+            if (!trimmed) return;
+            if (/\.svg(\?|$)/i.test(trimmed)) {
+              note.textContent = 'SVG non affiché par Discord';
+              return;
+            }
+            preview.onload = function () {
+              preview.style.display = '';
+              note.textContent = '';
+            };
+            preview.onerror = function () {
+              preview.style.display = 'none';
+              note.textContent = 'image introuvable';
+            };
+            preview.src = trimmed;
+          }
+
+          var input = el('input', {
+            type: 'url',
+            value: value,
+            placeholder: placeholder,
+            oninput: function (event) {
+              onChange(event.target.value);
+              refresh(event.target.value);
+            },
+          });
+          refresh(value);
+
+          return el('div', {}, [
+            el('label', { text: label }),
+            input,
+            el(
+              'div',
+              { style: 'display:flex;align-items:center;gap:.4rem;margin-top:.25rem' },
+              [preview, note],
+            ),
+          ]);
+        }
+
+        /** The inputs shared by the create and edit school forms. */
         function buildSchoolFields(draft) {
           return el('div', { class: 'field-row', style: 'margin-top:.5rem' }, [
             el('div', {}, [
@@ -1692,28 +1847,22 @@
                 },
               }),
             ]),
-            el('div', {}, [
-              el('label', { text: 'Bannière — grande image en bas' }),
-              el('input', {
-                type: 'url',
-                value: draft.bannerUrl,
-                placeholder: 'https://…/banniere.png',
-                oninput: function (event) {
-                  draft.bannerUrl = event.target.value;
-                },
-              }),
-            ]),
-            el('div', {}, [
-              el('label', { text: 'Vignette — petit logo en haut à droite' }),
-              el('input', {
-                type: 'url',
-                value: draft.thumbnailUrl,
-                placeholder: 'https://…/logo.png',
-                oninput: function (event) {
-                  draft.thumbnailUrl = event.target.value;
-                },
-              }),
-            ]),
+            buildImageField(
+              'Bannière — grande image en bas',
+              draft.bannerUrl,
+              'https://…/banniere.jpg',
+              function (value) {
+                draft.bannerUrl = value;
+              },
+            ),
+            buildImageField(
+              'Vignette — petit logo en haut à droite',
+              draft.thumbnailUrl,
+              'https://…/logo.jpg',
+              function (value) {
+                draft.thumbnailUrl = value;
+              },
+            ),
             el('div', { style: 'flex-basis:100%' }, [
               el('label', {
                 text: 'Lieux de rencontre — séparés par des virgules',
@@ -1757,8 +1906,10 @@
           }
 
           var body = document.getElementById('students-body');
-          clear(body);
+          rebuild(body, fillStudents);
+        }
 
+        function fillStudents(body) {
           if (!state.schools.length) {
             body.appendChild(
               el('div', { class: 'empty', text: 'Aucune école. Ajoutez-en une ci-dessous.' }),
@@ -1783,18 +1934,16 @@
                 text: school.students.length + ' étudiant(s)',
               }),
               el('span', { class: 'spacer', style: 'flex:1' }),
-              el('button', {
+              iconButton(editingThisSchool ? '✕' : '✏️', editingThisSchool ? 'Fermer' : 'Modifier', {
                 class: 'ghost',
-                text: editingThisSchool ? 'Fermer' : 'Modifier',
                 onclick: function (event) {
                   event.preventDefault();
                   event.stopPropagation();
                   toggleSchoolEditor(school);
                 },
               }),
-              el('button', {
+              iconButton('🗑️', 'Supprimer', {
                 class: 'danger',
-                text: 'Supprimer',
                 onclick: function (event) {
                   event.preventDefault();
                   event.stopPropagation();
@@ -1859,16 +2008,14 @@
                   el('span', { class: 'name', text: student.name }),
                   idInput,
                   el('span', { class: 'muted', text: describePlan(student) }),
-                  el('button', {
+                  iconButton(isEditing ? '✕' : '🗓️', isEditing ? 'Fermer' : 'Horaire', {
                     class: 'ghost',
-                    text: isEditing ? 'Fermer' : 'Horaire',
                     onclick: function () {
                       toggleScheduleEditor(school.name, student);
                     },
                   }),
-                  el('button', {
+                  iconButton('🗑️', 'Retirer', {
                     class: 'danger',
-                    text: 'Retirer',
                     onclick: function () {
                       deleteStudent(school.name, student.name);
                     },
@@ -1986,8 +2133,10 @@
         /* ---------------- student mode ---------------- */
 
         function renderMe() {
-          var body = document.getElementById('me-body');
-          clear(body);
+          rebuild(document.getElementById('me-body'), fillMe);
+        }
+
+        function fillMe(body) {
           if (!state.mePlan) {
             body.appendChild(el('div', { class: 'empty', text: 'Chargement…' }));
             return;
