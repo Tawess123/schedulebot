@@ -1,0 +1,2179 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Schedule Bot — Panel Admin</title>
+    <style>
+      :root {
+        --bg: #1e1f22;
+        --card: #2b2d31;
+        --card-alt: #313338;
+        --border: #3f4147;
+        --accent: #5865f2;
+        --accent-hover: #4752c4;
+        --text: #dbdee1;
+        --text-dim: #949ba4;
+        --red: #f23f43;
+        --yellow: #f0b132;
+        --green: #23a55a;
+        --radius: 8px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 15px;
+        line-height: 1.5;
+      }
+
+      .wrap {
+        max-width: 60rem;
+        margin: 0 auto;
+        padding: 1rem 1rem 4rem;
+      }
+
+      /* ---------- header ---------- */
+
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: rgba(30, 31, 34, 0.95);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .header-inner {
+        max-width: 60rem;
+        margin: 0 auto;
+        padding: 0.85rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      h1 {
+        font-size: 1.05rem;
+        margin: 0;
+        flex: 1;
+        min-width: 12rem;
+      }
+
+      .conn {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        font-size: 0.8rem;
+        color: var(--text-dim);
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--text-dim);
+        flex: none;
+      }
+      .dot.red {
+        background: var(--red);
+      }
+      .dot.yellow {
+        background: var(--yellow);
+      }
+      .dot.green {
+        background: var(--green);
+      }
+
+      /* ---------- sections ---------- */
+
+      section {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1rem;
+        margin-top: 1rem;
+      }
+
+      h2 {
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        margin: 0 0 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+      }
+
+      h2 .spacer {
+        flex: 1;
+      }
+
+      h3 {
+        font-size: 0.95rem;
+        margin: 0;
+      }
+
+      .muted {
+        color: var(--text-dim);
+        font-size: 0.82rem;
+      }
+
+      .empty {
+        color: var(--text-dim);
+        font-size: 0.88rem;
+        padding: 0.5rem 0;
+      }
+
+      /* ---------- controls ---------- */
+
+      button {
+        font: inherit;
+        font-size: 0.85rem;
+        border: none;
+        border-radius: 5px;
+        padding: 0.4rem 0.75rem;
+        background: var(--accent);
+        color: #fff;
+        cursor: pointer;
+      }
+      button:hover:not(:disabled) {
+        background: var(--accent-hover);
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      button.ghost {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-dim);
+      }
+      button.ghost:hover:not(:disabled) {
+        background: var(--card-alt);
+        color: var(--text);
+      }
+      button.danger {
+        background: transparent;
+        border: 1px solid transparent;
+        color: var(--red);
+        padding: 0.25rem 0.5rem;
+      }
+      button.danger:hover:not(:disabled) {
+        background: rgba(242, 63, 67, 0.12);
+      }
+
+      input,
+      select {
+        font: inherit;
+        font-size: 0.85rem;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        color: var(--text);
+        padding: 0.4rem 0.5rem;
+        min-width: 0;
+      }
+      input:focus {
+        outline: 2px solid var(--accent);
+        outline-offset: -1px;
+      }
+      input[type='color'] {
+        padding: 2px;
+        height: 2rem;
+        width: 3rem;
+      }
+      input.inline {
+        background: transparent;
+        border-color: transparent;
+        width: 11rem;
+      }
+      input.inline:hover {
+        border-color: var(--border);
+      }
+
+      label {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        margin-bottom: 0.2rem;
+      }
+
+      /* ---------- status ---------- */
+
+      .school-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+        gap: 0.75rem;
+      }
+
+      .school-card {
+        background: var(--card-alt);
+        border-radius: var(--radius);
+        border-left: 3px solid var(--accent);
+        padding: 0.75rem 0.9rem;
+      }
+
+      .school-card h3 {
+        margin-bottom: 0.5rem;
+      }
+
+      .student-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.55rem;
+        padding: 0.35rem 0;
+        border-top: 1px solid var(--border);
+      }
+      .student-row:first-of-type {
+        border-top: none;
+      }
+      .student-row .dot {
+        margin-top: 0.4rem;
+      }
+      .student-row .who {
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+      .student-row .what {
+        font-size: 0.82rem;
+        color: var(--text-dim);
+      }
+
+      /* ---------- table ---------- */
+
+      .scroll {
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+      }
+
+      th {
+        text-align: left;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-dim);
+        font-weight: 600;
+        padding: 0.4rem 0.5rem;
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+      }
+
+      td {
+        padding: 0.5rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+
+      .chip {
+        display: inline-block;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 0.05rem 0.5rem;
+        font-size: 0.75rem;
+        margin: 0.1rem 0.2rem 0.1rem 0;
+        white-space: nowrap;
+      }
+
+      /* ---------- accordion ---------- */
+
+      details.school {
+        background: var(--card-alt);
+        border-radius: var(--radius);
+        margin-bottom: 0.6rem;
+        overflow: hidden;
+      }
+
+      details.school > summary {
+        cursor: pointer;
+        padding: 0.65rem 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        list-style: none;
+        user-select: none;
+      }
+      details.school > summary::-webkit-details-marker {
+        display: none;
+      }
+      details.school > summary::before {
+        content: '▸';
+        color: var(--text-dim);
+        font-size: 0.8rem;
+      }
+      details.school[open] > summary::before {
+        content: '▾';
+      }
+
+      .swatch {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+        flex: none;
+      }
+
+      .school-body {
+        padding: 0 0.85rem 0.85rem;
+      }
+
+      .roster-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0;
+        border-top: 1px solid var(--border);
+        flex-wrap: wrap;
+      }
+
+      .roster-row .name {
+        font-weight: 600;
+        font-size: 0.88rem;
+        min-width: 7rem;
+        flex: 1;
+      }
+
+      /* ---------- forms ---------- */
+
+      .form-box {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.75rem;
+        margin-top: 0.75rem;
+      }
+
+      .field-row {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        align-items: flex-end;
+      }
+
+      .field-row > div {
+        flex: 1;
+        min-width: 8rem;
+      }
+
+      .field-row input {
+        width: 100%;
+      }
+
+      .week-tabs {
+        display: flex;
+        gap: 0.3rem;
+        flex-wrap: wrap;
+        margin: 0.5rem 0 0.25rem;
+      }
+      .week-tabs button.active {
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
+      }
+
+      .cycle-row {
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        align-items: center;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .cycle-row label {
+        margin: 0;
+      }
+
+      .event-row {
+        display: flex;
+        gap: 0.4rem;
+        align-items: center;
+        flex-wrap: wrap;
+        padding: 0.3rem 0;
+        border-top: 1px solid var(--border);
+      }
+      .event-row.past {
+        opacity: 0.5;
+      }
+      .event-row input[type='date'] {
+        width: 9.5rem;
+      }
+      .event-row input[type='time'] {
+        width: 7rem;
+      }
+      .event-row input[type='text'] {
+        flex: 1;
+        min-width: 8rem;
+      }
+      .event-row .replaces {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        white-space: nowrap;
+      }
+
+      .day-block {
+        margin-top: 0.6rem;
+        border-top: 1px solid var(--border);
+        padding-top: 0.5rem;
+      }
+
+      .day-head {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.3rem;
+      }
+
+      .day-head strong {
+        font-size: 0.8rem;
+        flex: 1;
+      }
+
+      .slot-row {
+        display: flex;
+        gap: 0.4rem;
+        margin-bottom: 0.3rem;
+        flex-wrap: wrap;
+      }
+      .slot-row input[type='time'] {
+        width: 7.5rem;
+      }
+      .slot-row input[type='text'] {
+        flex: 1;
+        min-width: 8rem;
+      }
+
+      .actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 0.75rem;
+      }
+
+      /* ---------- toasts ---------- */
+
+      #toasts {
+        position: fixed;
+        right: 1rem;
+        bottom: 1rem;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        max-width: calc(100vw - 2rem);
+      }
+
+      .toast {
+        background: var(--card-alt);
+        border-left: 3px solid var(--accent);
+        border-radius: 5px;
+        padding: 0.6rem 0.85rem;
+        font-size: 0.85rem;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+        animation: slide-in 0.15s ease-out;
+      }
+      .toast.ok {
+        border-left-color: var(--green);
+      }
+      .toast.err {
+        border-left-color: var(--red);
+      }
+
+      @keyframes slide-in {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+      }
+
+      @media (max-width: 34rem) {
+        .wrap {
+          padding: 0.5rem 0.5rem 3rem;
+        }
+        section {
+          padding: 0.75rem;
+        }
+        input.inline {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <div class="header-inner">
+        <h1>Schedule Bot — Panel Admin</h1>
+        <div class="conn">
+          <span class="dot" id="conn-dot"></span>
+          <span id="conn-text">Connexion…</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="wrap">
+      <section id="sec-me" hidden>
+        <h2>
+          Mon horaire
+          <span class="spacer"></span>
+          <span class="muted" id="me-who">—</span>
+        </h2>
+        <div id="me-body"><div class="empty">Chargement…</div></div>
+      </section>
+
+      <section id="sec-status">
+        <h2>
+          Statut en direct
+          <span class="spacer"></span>
+          <span class="muted" id="status-stamp">—</span>
+          <button class="ghost" id="btn-refresh">Rafraîchir</button>
+        </h2>
+        <div id="status-body"><div class="empty">Chargement…</div></div>
+      </section>
+
+      <section id="sec-overrides">
+        <h2>
+          Modifications du jour
+          <span class="spacer"></span>
+          <button class="ghost" id="btn-clear-all">Tout effacer</button>
+        </h2>
+        <div id="overrides-body"><div class="empty">Chargement…</div></div>
+      </section>
+
+      <section id="sec-students">
+        <h2>Écoles et étudiants</h2>
+        <div id="students-body"><div class="empty">Chargement…</div></div>
+
+        <div class="form-box" id="add-school-box">
+          <h3>Ajouter une école</h3>
+          <div class="field-row" style="margin-top: 0.5rem">
+            <div>
+              <label for="ns-name">Nom</label>
+              <input id="ns-name" type="text" placeholder="Montmorency" />
+            </div>
+            <div style="flex: 0 0 auto">
+              <label for="ns-color">Couleur</label>
+              <input id="ns-color" type="color" value="#5865f2" />
+            </div>
+            <div>
+              <label for="ns-banner">Bannière — grande image en bas</label>
+              <input id="ns-banner" type="url" placeholder="https://…/banniere.png" />
+            </div>
+            <div>
+              <label for="ns-thumb">Vignette — petit logo en haut à droite</label>
+              <input id="ns-thumb" type="url" placeholder="https://…/logo.png" />
+            </div>
+          </div>
+          <p class="muted" style="margin: 0.5rem 0 0">
+            Les deux images sont des URL publiques affichées dans l'embed Discord.
+            Laissez vide pour n'en afficher aucune.
+          </p>
+          <div class="actions">
+            <button id="btn-add-school">Ajouter l'école</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="sec-settings">
+        <h2>Réglages</h2>
+        <div class="field-row">
+          <div>
+            <label for="token-input">Mot de passe principal</label>
+            <input
+              id="token-input"
+              type="password"
+              placeholder="Collez le mot de passe principal"
+              autocomplete="off"
+            />
+          </div>
+          <button id="btn-save-token">Enregistrer</button>
+        </div>
+        <p class="muted" style="margin: 0.5rem 0 0">
+          Conservé dans le localStorage de ce navigateur, jamais envoyé ailleurs
+          qu'à ce serveur. À ressaisir une fois par navigateur.
+        </p>
+        <div class="actions">
+          <button class="ghost" id="btn-trigger">
+            Déclencher une mise à jour du bot
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <div id="toasts"></div>
+
+    <script>
+      (function () {
+        'use strict';
+
+        var WEEKDAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
+        var REFRESH_MS = 30000;
+        var TOKEN_KEY = 'schedulebot.token';
+
+        var state = {
+          token: '',
+          statuses: [],
+          schools: [],
+          overrides: {},
+          open: {}, // school name -> accordion open
+          drafts: {}, // school name -> { name, discordId, schedule }
+          editing: null, // { key, schoolName, studentName, plan }
+          editingSchool: null, // { name, draft: { name, colorHex, bannerUrl, thumbnailUrl } }
+          linkToken: '', // scoped /horaire token; non-empty means student mode
+          mePlan: null,
+        };
+
+        /* ---------------- utilities ---------------- */
+
+        function el(tag, props, kids) {
+          var node = document.createElement(tag);
+          if (props) {
+            Object.keys(props).forEach(function (key) {
+              if (key === 'class') node.className = props[key];
+              else if (key === 'text') node.textContent = props[key];
+              else if (key.slice(0, 2) === 'on')
+                node.addEventListener(key.slice(2), props[key]);
+              else if (props[key] !== null && props[key] !== undefined)
+                node.setAttribute(key, props[key]);
+            });
+          }
+          (kids || []).forEach(function (kid) {
+            if (kid) node.appendChild(kid);
+          });
+          return node;
+        }
+
+        function clear(node) {
+          while (node.firstChild) node.removeChild(node.firstChild);
+        }
+
+        function toast(message, kind) {
+          var box = el('div', { class: 'toast ' + (kind || ''), text: message });
+          document.getElementById('toasts').appendChild(box);
+          setTimeout(function () {
+            box.remove();
+          }, 4000);
+        }
+
+        function setConnection(kind, label) {
+          document.getElementById('conn-dot').className = 'dot ' + kind;
+          document.getElementById('conn-text').textContent = label;
+        }
+
+        function dotClassFor(emoji) {
+          if (emoji === '🟢') return 'green';
+          if (emoji === '🟡') return 'yellow';
+          return 'red';
+        }
+
+        function nowLabel() {
+          try {
+            return new Intl.DateTimeFormat('fr-CA', {
+              timeZone: 'America/Toronto',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+              hourCycle: 'h23',
+            }).format(new Date());
+          } catch (err) {
+            return new Date().toLocaleTimeString();
+          }
+        }
+
+        /* ---------------- api ---------------- */
+
+        function api(path, options) {
+          var opts = options || {};
+          // Student mode carries the link token; admin mode the master password.
+          var headers = {
+            Authorization: 'Bearer ' + (state.linkToken || state.token),
+          };
+          if (opts.body !== undefined) headers['Content-Type'] = 'application/json';
+
+          return fetch('/api' + path, {
+            method: opts.method || 'GET',
+            headers: headers,
+            body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+          }).then(function (res) {
+            return res
+              .json()
+              .catch(function () {
+                return null;
+              })
+              .then(function (data) {
+                if (res.ok) return data;
+                var message =
+                  (data && data.error) || 'HTTP ' + res.status + ' ' + res.statusText;
+                var err = new Error(message);
+                err.status = res.status;
+                throw err;
+              });
+          });
+        }
+
+        /* ---------------- live status ---------------- */
+
+        function renderStatus() {
+          var body = document.getElementById('status-body');
+          clear(body);
+
+          if (!state.statuses.length) {
+            body.appendChild(el('div', { class: 'empty', text: 'Aucune école configurée.' }));
+            return;
+          }
+
+          var grid = el('div', { class: 'school-grid' });
+
+          state.statuses.forEach(function (group) {
+            var card = el('div', { class: 'school-card' });
+            card.style.borderLeftColor = group.school.colorHex || 'var(--accent)';
+            card.appendChild(el('h3', { text: group.school.name }));
+
+            if (!group.statuses.length) {
+              card.appendChild(el('div', { class: 'empty', text: 'Aucun étudiant.' }));
+            }
+
+            group.statuses.forEach(function (status) {
+              var lines = [el('div', { class: 'who', text: status.name })];
+              lines.push(el('div', { class: 'what', text: status.statusText }));
+              if (status.nextEvent) {
+                lines.push(el('div', { class: 'what', text: status.nextEvent }));
+              }
+              card.appendChild(
+                el('div', { class: 'student-row' }, [
+                  el('span', { class: 'dot ' + dotClassFor(status.emoji) }),
+                  el('div', {}, lines),
+                ]),
+              );
+            });
+
+            grid.appendChild(card);
+          });
+
+          body.appendChild(grid);
+          document.getElementById('status-stamp').textContent =
+            'Mis à jour à ' + nowLabel();
+        }
+
+        /* ---------------- overrides ---------------- */
+
+        function describeOverride(override) {
+          var chips = [];
+          var details = [];
+
+          if (override.absentToday) chips.push('Absent');
+          if (override.leftAtBreak) {
+            chips.push('Parti à la pause');
+            if (override.destination) details.push('→ ' + override.destination);
+          } else if (override.destination) {
+            details.push('Destination : ' + override.destination);
+          }
+          if (override.spot) {
+            chips.push('Position');
+            details.push('📍 ' + override.spot);
+          }
+          if (override.stayingUntil) {
+            chips.push('Reste à l’école');
+            details.push('Jusqu’à ' + override.stayingUntil);
+          }
+          if (override.pauseNote) {
+            chips.push('Note');
+            details.push('« ' + override.pauseNote + ' »');
+          }
+          if (override.cancelledClasses && override.cancelledClasses.length) {
+            chips.push('Cours annulés');
+            details.push('Annulés : #' + override.cancelledClasses.join(', #'));
+          }
+          if (override.finishedClasses && override.finishedClasses.length) {
+            chips.push('Cours terminés');
+            details.push('Terminés : #' + override.finishedClasses.join(', #'));
+          }
+
+          return { chips: chips, details: details.join(' · ') };
+        }
+
+        function renderOverrides() {
+          var body = document.getElementById('overrides-body');
+          clear(body);
+
+          var names = Object.keys(state.overrides).filter(function (name) {
+            return describeOverride(state.overrides[name]).chips.length > 0;
+          });
+
+          document.getElementById('btn-clear-all').disabled = names.length === 0;
+
+          if (!names.length) {
+            body.appendChild(
+              el('div', { class: 'empty', text: 'Aucune modification active aujourd’hui.' }),
+            );
+            return;
+          }
+
+          var rows = names.sort().map(function (name) {
+            var described = describeOverride(state.overrides[name]);
+
+            var chipCell = el('td', {});
+            described.chips.forEach(function (chip) {
+              chipCell.appendChild(el('span', { class: 'chip', text: chip }));
+            });
+
+            return el('tr', {}, [
+              el('td', {}, [el('strong', { text: name })]),
+              chipCell,
+              el('td', { class: 'muted', text: described.details || '—' }),
+              el('td', {}, [
+                el('button', {
+                  class: 'danger',
+                  text: 'Effacer',
+                  onclick: function () {
+                    clearOverride(name);
+                  },
+                }),
+              ]),
+            ]);
+          });
+
+          var table = el('table', {}, [
+            el('thead', {}, [
+              el('tr', {}, [
+                el('th', { text: 'Étudiant' }),
+                el('th', { text: 'Type' }),
+                el('th', { text: 'Détails' }),
+                el('th', { text: '' }),
+              ]),
+            ]),
+            el('tbody', {}, rows),
+          ]);
+
+          body.appendChild(el('div', { class: 'scroll' }, [table]));
+        }
+
+        function clearOverride(name) {
+          api('/overrides/' + encodeURIComponent(name), { method: 'DELETE' })
+            .then(function () {
+              toast('Modifications de ' + name + ' effacées.', 'ok');
+              return refreshAll();
+            })
+            .catch(function (err) {
+              toast(err.message, 'err');
+            });
+        }
+
+        function clearAllOverrides() {
+          var names = Object.keys(state.overrides);
+          if (!names.length) return;
+          if (!window.confirm('Effacer les modifications de ' + names.length + ' étudiant(s) ?'))
+            return;
+
+          // There is no bulk endpoint, so this is one request per student.
+          Promise.all(
+            names.map(function (name) {
+              return api('/overrides/' + encodeURIComponent(name), { method: 'DELETE' });
+            }),
+          )
+            .then(function () {
+              toast('Toutes les modifications ont été effacées.', 'ok');
+              return refreshAll();
+            })
+            .catch(function (err) {
+              toast(err.message, 'err');
+            });
+        }
+
+        /* ---------------- schedule builder ---------------- */
+
+        function emptyWeek() {
+          return [[], [], [], [], []];
+        }
+
+        /**
+         * The editor works on a "plan": one or more weeks in rotation, the
+         * Monday the rotation starts on, and the dated one-off events.
+         */
+        function emptyPlan() {
+          return {
+            weeks: [emptyWeek()],
+            cycleStart: '',
+            periods: [],
+            events: [],
+            active: 0,
+            // Which block the editor is showing: -1 means the default week.
+            activePeriod: -1,
+          };
+        }
+
+        function emptyDraft() {
+          return { name: '', discordId: '', plan: emptyPlan() };
+        }
+
+        function planFromStudent(student) {
+          var weeks = [scheduleToDraft(student.schedule)];
+          (student.extraWeeks || []).forEach(function (week) {
+            weeks.push(scheduleToDraft(week));
+          });
+          return {
+            weeks: weeks,
+            cycleStart: student.cycleStart || '',
+            activePeriod: -1,
+            periods: (student.periods || []).map(function (period) {
+              return {
+                from: period.from,
+                to: period.to,
+                label: period.label || '',
+                schedule: scheduleToDraft(period.schedule),
+              };
+            }),
+            events: (student.events || []).map(function (event) {
+              return {
+                date: event.date,
+                startTime: event.startTime,
+                endTime: event.endTime,
+                location: event.location,
+                replacesDay: !!event.replacesDay,
+              };
+            }),
+            active: 0,
+          };
+        }
+
+        /** Build the PATCH/POST body from a plan, reporting incomplete rows. */
+        function planToPayload(plan) {
+          var invalid = false;
+          var built = plan.weeks.map(function (week) {
+            var out = draftToSchedule(week);
+            if (out.invalid) invalid = true;
+            return out.schedule;
+          });
+
+          var events = [];
+          plan.events.forEach(function (event) {
+            var filled =
+              event.date && event.startTime && event.endTime && event.location.trim();
+            var partial =
+              !filled &&
+              (event.date || event.startTime || event.endTime || event.location.trim());
+            if (partial) invalid = true;
+            if (!filled) return;
+            var out = {
+              date: event.date,
+              startTime: event.startTime,
+              endTime: event.endTime,
+              location: event.location.trim(),
+            };
+            if (event.replacesDay) out.replacesDay = true;
+            events.push(out);
+          });
+
+          var periods = [];
+          plan.periods.forEach(function (period) {
+            if (!period.from || !period.to) {
+              invalid = true;
+              return;
+            }
+            var week = draftToSchedule(period.schedule);
+            if (week.invalid) invalid = true;
+            var out = { from: period.from, to: period.to, schedule: week.schedule };
+            if (period.label.trim()) out.label = period.label.trim();
+            periods.push(out);
+          });
+
+          return {
+            invalid: invalid,
+            cycleMissing: built.length > 1 && !plan.cycleStart,
+            payload: {
+              schedule: built[0],
+              extraWeeks: built.slice(1),
+              cycleStart: built.length > 1 ? plan.cycleStart : '',
+              periods: periods,
+              events: events,
+            },
+          };
+        }
+
+        function draftFor(schoolName) {
+          if (!state.drafts[schoolName]) state.drafts[schoolName] = emptyDraft();
+          return state.drafts[schoolName];
+        }
+
+        /** Copy one stored WeeklySchedule into the editor's array-of-5-days shape. */
+        function scheduleToDraft(week) {
+          var stored = week || {};
+          return [0, 1, 2, 3, 4].map(function (day) {
+            var slots = stored[day] || stored[String(day)] || [];
+            return slots.map(function (slot) {
+              return {
+                startTime: slot.startTime,
+                endTime: slot.endTime,
+                location: slot.location,
+              };
+            });
+          });
+        }
+
+        /**
+         * Turn the editor's array back into the API's `{ "0": [...] }` shape.
+         * Half-filled rows are reported rather than silently dropped.
+         */
+        function draftToSchedule(draftSchedule) {
+          var schedule = {};
+          var invalid = false;
+
+          draftSchedule.forEach(function (slots, dayIndex) {
+            schedule[dayIndex] = slots.filter(function (slot) {
+              var filled = slot.startTime && slot.endTime && slot.location.trim();
+              var partial =
+                !filled && (slot.startTime || slot.endTime || slot.location.trim());
+              if (partial) invalid = true;
+              return filled;
+            });
+          });
+
+          return { schedule: schedule, invalid: invalid };
+        }
+
+        var WEEK_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
+        var MAX_WEEKS = 6;
+
+        function todayKey() {
+          try {
+            return new Intl.DateTimeFormat('en-CA', {
+              timeZone: 'America/Toronto',
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+            }).format(new Date());
+          } catch (err) {
+            return new Date().toISOString().slice(0, 10);
+          }
+        }
+
+        /** Nearest Monday on or before `key` (YYYY-MM-DD), for the cycle anchor. */
+        function mondayOnOrBefore(key) {
+          var parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key || '');
+          if (!parts) return '';
+          var utc = Date.UTC(+parts[1], +parts[2] - 1, +parts[3]);
+          var shift = (new Date(utc).getUTCDay() + 6) % 7;
+          return new Date(utc - shift * 86400000).toISOString().slice(0, 10);
+        }
+
+        /** Which week of the rotation covers today - mirrors the server logic. */
+        function activeWeekToday(plan) {
+          if (plan.weeks.length < 2 || !plan.cycleStart) return 0;
+          var anchor = mondayOnOrBefore(plan.cycleStart);
+          var current = mondayOnOrBefore(todayKey());
+          if (!anchor || !current) return 0;
+          var elapsed = Math.round(
+            (Date.parse(current) - Date.parse(anchor)) / (7 * 86400000),
+          );
+          var n = plan.weeks.length;
+          return ((elapsed % n) + n) % n;
+        }
+
+        /** Full editor for a student's plan: rotation, weeks, and dated events. */
+        function buildPlanEditor(plan) {
+          var wrap = el('div', {});
+          var rotating = plan.weeks.length > 1;
+          var onBase = plan.activePeriod === -1;
+
+          // --- rotation controls --------------------------------------------
+          var cycleRow = el('div', { class: 'cycle-row' }, [
+            el('label', { text: 'Semaines en rotation' }),
+          ]);
+
+          var count = el('select', {
+            'aria-label': 'Nombre de semaines',
+            onchange: function (event) {
+              var next = Number(event.target.value);
+              while (plan.weeks.length < next) plan.weeks.push(emptyWeek());
+              plan.weeks.length = next;
+              if (plan.active >= next) plan.active = next - 1;
+              if (next > 1 && !plan.cycleStart) {
+                plan.cycleStart = mondayOnOrBefore(todayKey());
+              }
+              renderStudents();
+            },
+          });
+          for (var n = 1; n <= MAX_WEEKS; n += 1) {
+            var opt = el('option', { value: String(n), text: String(n) });
+            if (n === plan.weeks.length) opt.selected = true;
+            count.appendChild(opt);
+          }
+          cycleRow.appendChild(count);
+
+          if (rotating) {
+            cycleRow.appendChild(el('label', { text: 'La semaine A commence le' }));
+            cycleRow.appendChild(
+              el('input', {
+                type: 'date',
+                value: plan.cycleStart,
+                'aria-label': 'Debut du cycle',
+                onchange: function (event) {
+                  // Snap to Monday so the rotation lines up with the school week.
+                  plan.cycleStart = mondayOnOrBefore(event.target.value);
+                  renderStudents();
+                },
+              }),
+            );
+          } else {
+            cycleRow.appendChild(
+              el('span', {
+                class: 'muted',
+                text: 'Horaire identique chaque semaine',
+              }),
+            );
+          }
+          if (onBase) wrap.appendChild(cycleRow);
+
+          // --- week tabs -----------------------------------------------------
+          if (rotating && onBase) {
+            var tabs = el('div', { class: 'week-tabs' });
+            var current = activeWeekToday(plan);
+
+            plan.weeks.forEach(function (week, index) {
+              var slotCount = week.reduce(function (total, day) {
+                return total + day.length;
+              }, 0);
+              tabs.appendChild(
+                el('button', {
+                  class: 'ghost' + (index === plan.active ? ' active' : ''),
+                  text:
+                    'Semaine ' +
+                    (WEEK_LETTERS[index] || index + 1) +
+                    (index === current ? ' \u2022 en cours' : '') +
+                    ' (' +
+                    slotCount +
+                    ')',
+                  onclick: function () {
+                    plan.active = index;
+                    renderStudents();
+                  },
+                }),
+              );
+            });
+
+            if (plan.active > 0) {
+              tabs.appendChild(
+                el('button', {
+                  class: 'ghost',
+                  text: '\u29c9 Copier la semaine A ici',
+                  onclick: function () {
+                    plan.weeks[plan.active] = JSON.parse(
+                      JSON.stringify(plan.weeks[0]),
+                    );
+                    renderStudents();
+                  },
+                }),
+              );
+            }
+            wrap.appendChild(tabs);
+          }
+
+          // --- dated blocks --------------------------------------------------
+          var today = todayKey();
+          var blocks = el('div', { class: 'week-tabs' }, [
+            el('button', {
+              class: 'ghost' + (plan.activePeriod === -1 ? ' active' : ''),
+              text: 'Horaire de base',
+              onclick: function () {
+                plan.activePeriod = -1;
+                renderStudents();
+              },
+            }),
+          ]);
+
+          plan.periods.forEach(function (period, index) {
+            var live = period.from <= today && today <= period.to;
+            blocks.appendChild(
+              el('button', {
+                class: 'ghost' + (plan.activePeriod === index ? ' active' : ''),
+                text:
+                  (period.label || period.from + ' → ' + period.to) +
+                  (live ? ' • en cours' : ''),
+                onclick: function () {
+                  plan.activePeriod = index;
+                  renderStudents();
+                },
+              }),
+            );
+          });
+
+          blocks.appendChild(
+            el('button', {
+              class: 'ghost',
+              text: '+ Bloc daté',
+              title: 'Un horaire différent entre deux dates',
+              onclick: function () {
+                plan.periods.push({
+                  from: today,
+                  to: today,
+                  label: '',
+                  // Seeded from the base week so only the differences matter.
+                  schedule: JSON.parse(JSON.stringify(plan.weeks[0])),
+                });
+                plan.activePeriod = plan.periods.length - 1;
+                renderStudents();
+              },
+            }),
+          );
+          wrap.appendChild(blocks);
+
+          var editingPeriod =
+            plan.activePeriod >= 0 ? plan.periods[plan.activePeriod] : null;
+
+          if (editingPeriod) {
+            wrap.appendChild(
+              el('div', { class: 'cycle-row' }, [
+                el('label', { text: 'Du' }),
+                el('input', {
+                  type: 'date',
+                  value: editingPeriod.from,
+                  'aria-label': 'Début du bloc',
+                  oninput: function (event) {
+                    editingPeriod.from = event.target.value;
+                  },
+                }),
+                el('label', { text: 'au' }),
+                el('input', {
+                  type: 'date',
+                  value: editingPeriod.to,
+                  'aria-label': 'Fin du bloc',
+                  oninput: function (event) {
+                    editingPeriod.to = event.target.value;
+                  },
+                }),
+                el('input', {
+                  type: 'text',
+                  value: editingPeriod.label,
+                  placeholder: 'Nom (optionnel)',
+                  'aria-label': 'Nom du bloc',
+                  oninput: function (event) {
+                    editingPeriod.label = event.target.value;
+                  },
+                }),
+                el('button', {
+                  class: 'danger',
+                  text: 'Retirer ce bloc',
+                  onclick: function () {
+                    plan.periods.splice(plan.activePeriod, 1);
+                    plan.activePeriod = -1;
+                    renderStudents();
+                  },
+                }),
+              ]),
+            );
+            wrap.appendChild(buildScheduleEditor(editingPeriod.schedule));
+          } else {
+            wrap.appendChild(
+              buildScheduleEditor(plan.weeks[plan.active] || plan.weeks[0]),
+            );
+          }
+
+          // --- one-off events -------------------------------------------------
+          var events = el('div', { class: 'day-block' }, [
+            el('div', { class: 'day-head' }, [
+              el('strong', { text: '\u00c9v\u00e9nements ponctuels' }),
+              el('span', {
+                class: 'muted',
+                text: plan.events.length
+                  ? plan.events.length + ' pr\u00e9vu(s)'
+                  : 'aucun',
+              }),
+              el('button', {
+                class: 'ghost',
+                text: '+ \u00c9v\u00e9nement',
+                onclick: function () {
+                  plan.events.push({
+                    date: today,
+                    startTime: '',
+                    endTime: '',
+                    location: '',
+                    replacesDay: false,
+                  });
+                  renderStudents();
+                },
+              }),
+            ]),
+          ]);
+
+          plan.events.forEach(function (event, index) {
+            var replaces = el('input', { type: 'checkbox' });
+            replaces.checked = !!event.replacesDay;
+            replaces.addEventListener('change', function () {
+              event.replacesDay = replaces.checked;
+            });
+
+            events.appendChild(
+              el(
+                'div',
+                {
+                  class:
+                    'event-row' +
+                    (event.date && event.date < today ? ' past' : ''),
+                },
+                [
+                  el('input', {
+                    type: 'date',
+                    value: event.date,
+                    'aria-label': 'Date',
+                    oninput: function (e) {
+                      event.date = e.target.value;
+                    },
+                  }),
+                  el('input', {
+                    type: 'time',
+                    value: event.startTime,
+                    'aria-label': 'D\u00e9but',
+                    oninput: function (e) {
+                      event.startTime = e.target.value;
+                    },
+                  }),
+                  el('input', {
+                    type: 'time',
+                    value: event.endTime,
+                    'aria-label': 'Fin',
+                    oninput: function (e) {
+                      event.endTime = e.target.value;
+                    },
+                  }),
+                  el('input', {
+                    type: 'text',
+                    value: event.location,
+                    placeholder: 'Examen, sortie, local\u2026',
+                    'aria-label': 'Description',
+                    oninput: function (e) {
+                      event.location = e.target.value;
+                    },
+                  }),
+                  el('label', { class: 'replaces' }, [
+                    replaces,
+                    el('span', { text: 'remplace la journ\u00e9e' }),
+                  ]),
+                  el('button', {
+                    class: 'danger',
+                    text: '\u2715',
+                    title: 'Retirer cet \u00e9v\u00e9nement',
+                    onclick: function () {
+                      plan.events.splice(index, 1);
+                      renderStudents();
+                    },
+                  }),
+                ],
+              ),
+            );
+          });
+
+          wrap.appendChild(events);
+          return wrap;
+        }
+
+        /** Weekday-by-weekday slot editor, bound to `draftSchedule` in place. */
+        function buildScheduleEditor(draftSchedule) {
+          var wrap = el('div', {});
+
+          WEEKDAYS.forEach(function (dayLabel, dayIndex) {
+            var block = el('div', { class: 'day-block' });
+            var slots = draftSchedule[dayIndex];
+
+            block.appendChild(
+              el('div', { class: 'day-head' }, [
+                el('strong', { text: dayLabel }),
+                el('span', {
+                  class: 'muted',
+                  text: slots.length ? slots.length + ' cours' : 'libre',
+                }),
+                el('button', {
+                  class: 'ghost',
+                  text: '+ Cours',
+                  onclick: function () {
+                    slots.push({ startTime: '', endTime: '', location: '' });
+                    renderStudents();
+                  },
+                }),
+              ]),
+            );
+
+            slots.forEach(function (slot, slotIndex) {
+              block.appendChild(
+                el('div', { class: 'slot-row' }, [
+                  el('input', {
+                    type: 'time',
+                    value: slot.startTime,
+                    'aria-label': 'Début',
+                    oninput: function (event) {
+                      slot.startTime = event.target.value;
+                    },
+                  }),
+                  el('input', {
+                    type: 'time',
+                    value: slot.endTime,
+                    'aria-label': 'Fin',
+                    oninput: function (event) {
+                      slot.endTime = event.target.value;
+                    },
+                  }),
+                  el('input', {
+                    type: 'text',
+                    value: slot.location,
+                    placeholder: 'Local ou cours',
+                    'aria-label': 'Local',
+                    oninput: function (event) {
+                      slot.location = event.target.value;
+                    },
+                  }),
+                  el('button', {
+                    class: 'danger',
+                    text: '✕',
+                    title: 'Retirer ce cours',
+                    onclick: function () {
+                      slots.splice(slotIndex, 1);
+                      renderStudents();
+                    },
+                  }),
+                ]),
+              );
+            });
+
+            wrap.appendChild(block);
+          });
+
+          return wrap;
+        }
+
+        function submitStudent(schoolName) {
+          var draft = draftFor(schoolName);
+          if (!draft.name.trim()) {
+            toast('Le nom de l’étudiant est requis.', 'err');
+            return;
+          }
+
+          var built = planToPayload(draft.plan);
+          if (built.invalid) {
+            toast(
+              'Chaque cours et événement doit être complet (début, fin, description).',
+              'err',
+            );
+            return;
+          }
+          if (built.cycleMissing) {
+            toast('Indiquez le lundi où commence la semaine A.', 'err');
+            return;
+          }
+
+          api('/schools/' + encodeURIComponent(schoolName) + '/students', {
+            method: 'POST',
+            body: {
+              name: draft.name.trim(),
+              discordId: draft.discordId.trim(),
+              schedule: built.payload.schedule,
+              extraWeeks: built.payload.extraWeeks,
+              cycleStart: built.payload.cycleStart,
+              events: built.payload.events,
+            },
+          })
+            .then(function () {
+              toast(draft.name.trim() + ' ajouté.', 'ok');
+              state.drafts[schoolName] = emptyDraft();
+              return refreshAll();
+            })
+            .catch(function (err) {
+              toast(err.message, 'err');
+            });
+        }
+
+        /* ---------------- students ---------------- */
+
+        function editKey(schoolName, studentName) {
+          return schoolName + '::' + studentName;
+        }
+
+        function toggleScheduleEditor(schoolName, student) {
+          var key = editKey(schoolName, student.name);
+          state.editing =
+            state.editing && state.editing.key === key
+              ? null
+              : {
+                  key: key,
+                  schoolName: schoolName,
+                  studentName: student.name,
+                  plan: planFromStudent(student),
+                };
+          renderStudents();
+        }
+
+        function saveSchedule() {
+          var editing = state.editing;
+          if (!editing) return;
+
+          var built = planToPayload(editing.plan);
+          if (built.invalid) {
+            toast(
+              'Chaque cours et événement doit être complet (début, fin, description).',
+              'err',
+            );
+            return;
+          }
+          if (built.cycleMissing) {
+            toast('Indiquez le lundi où commence la semaine A.', 'err');
+            return;
+          }
+
+          api(
+            '/schools/' +
+              encodeURIComponent(editing.schoolName) +
+              '/students/' +
+              encodeURIComponent(editing.studentName),
+            { method: 'PATCH', body: built.payload },
+          )
+            .then(function () {
+              toast('Horaire de ' + editing.studentName + ' enregistré.', 'ok');
+              state.editing = null;
+              return refreshAll();
+            })
+            .catch(function (err) {
+              toast(err.message, 'err');
+            });
+        }
+
+        function countClasses(student) {
+          var total = 0;
+          Object.keys(student.schedule || {}).forEach(function (day) {
+            total += (student.schedule[day] || []).length;
+          });
+          return total;
+        }
+
+        /** Short summary shown next to a student's name in the roster. */
+        function describePlan(student) {
+          var weeks = 1 + (student.extraWeeks || []).length;
+          var bits = [countClasses(student) + ' cours/sem.'];
+          if (weeks > 1) bits.push('cycle de ' + weeks + ' semaines');
+
+          var upcoming = (student.events || []).filter(function (event) {
+            return event.date >= todayKey();
+          }).length;
+          if (upcoming) bits.push(upcoming + ' événement(s)');
+
+          return bits.join(' · ');
+        }
+
+        function saveDiscordId(schoolName, student, value, input) {
+          var next = value.trim();
+          if (next === (student.discordId || '')) return;
+
+          api(
+            '/schools/' +
+              encodeURIComponent(schoolName) +
+              '/students/' +
+              encodeURIComponent(student.name),
+            { method: 'PATCH', body: { discordId: next } },
+          )
+            .then(function () {
+              student.discordId = next;
+              toast('ID Discord de ' + student.name + ' enregistré.', 'ok');
+              return refreshAll();
+            })
+            .catch(function (err) {
+              input.value = student.discordId || '';
+              toast(err.message, 'err');
+            });
+        }
+
+        function deleteStudent(schoolName, studentName) {
+          if (!window.confirm('Retirer ' + studentName + ' de ' + schoolName + ' ?')) return;
+
+          api(
+            '/schools/' +
+              encodeURIComponent(schoolName) +
+              '/students/' +
+              encodeURIComponent(studentName),
+            { method: 'DELETE' },
+          )
+            .then(function () {
+              toast(studentName + ' retiré.', 'ok');
+              return refreshAll();
+            })
+            .catch(function (err) {
+              toast(err.message, 'err');
+            });
+        }
+
+        function toggleSchoolEditor(school) {
+          state.editingSchool =
+            state.editingSchool && state.editingSchool.name === school.name
+              ? null
+              : {
+                  name: school.name,
+                  draft: {
+                    name: school.name,
+                    colorHex: school.colorHex || '#5865f2',
+                    bannerUrl: school.bannerUrl || '',
+                    thumbnailUrl: school.thumbnailUrl || '',
+                    places: (school.places || []).join(', '),
+                  },
+                };
+          renderStudents();
+        }
+
+        function saveSchool() {
+          var editing = state.editingSchool;
+          if (!editing) return;
+          if (!editing.draft.name.trim()) {
+            toast('Le nom de l’école est requis.', 'err');
+            return;
+          }
+
+          api('/schools/' + encodeURIComponent(editing.name), {
+            method: 'PATCH',
+            body: {
+              name: editing.draft.name.trim(),
+              colorHex: editing.draft.colorHex,
+              bannerUrl: editing.draft.bannerUrl.trim(),
+              thumbnailUrl: editing.draft.thumbnailUrl.trim(),
+              places: editing.draft.places
+                .split(',')
+                .map(function (place) {
+                  return place.trim();
+                })
+                .filter(Boolean),
+            },
+          })
+            .then(function (updated) {
+              toast('École enregistrée.', 'ok');
+              // A rename moves the accordion key with it.
+              if (updated && updated.name !== editing.name) {
+                state.open[updated.name] = state.open[editing.name];
+                delete state.open[editing.name];
+              }
+              state.editingSchool = null;
+              return refreshAll();
+            })
+            .catch(function (err) {
+              toast(err.message, 'err');
+            });
+        }
+
+        /** The four inputs shared by the create and edit school forms. */
+        function buildSchoolFields(draft) {
+          return el('div', { class: 'field-row', style: 'margin-top:.5rem' }, [
+            el('div', {}, [
+              el('label', { text: 'Nom' }),
+              el('input', {
+                type: 'text',
+                value: draft.name,
+                placeholder: 'Montmorency',
+                oninput: function (event) {
+                  draft.name = event.target.value;
+                },
+              }),
+            ]),
+            el('div', { style: 'flex:0 0 auto' }, [
+              el('label', { text: 'Couleur' }),
+              el('input', {
+                type: 'color',
+                value: draft.colorHex,
+                oninput: function (event) {
+                  draft.colorHex = event.target.value;
+                },
+              }),
+            ]),
+            el('div', {}, [
+              el('label', { text: 'Bannière — grande image en bas' }),
+              el('input', {
+                type: 'url',
+                value: draft.bannerUrl,
+                placeholder: 'https://…/banniere.png',
+                oninput: function (event) {
+                  draft.bannerUrl = event.target.value;
+                },
+              }),
+            ]),
+            el('div', {}, [
+              el('label', { text: 'Vignette — petit logo en haut à droite' }),
+              el('input', {
+                type: 'url',
+                value: draft.thumbnailUrl,
+                placeholder: 'https://…/logo.png',
+                oninput: function (event) {
+                  draft.thumbnailUrl = event.target.value;
+                },
+              }),
+            ]),
+            el('div', { style: 'flex-basis:100%' }, [
+              el('label', {
+                text: 'Lieux de rencontre — séparés par des virgules',
+              }),
+              el('input', {
+                type: 'text',
+                value: draft.places,
+                placeholder: 'Cafétéria, Bibliothèque, Agora, Café étudiant',
+                oninput: function (event) {
+                  draft.places = event.target.value;
+                },
+              }),
+            ]),
+          ]);
+        }
+
+        function deleteSchool(schoolName) {
+          if (
+            !window.confirm(
+              'Supprimer ' + schoolName + ' et tous ses étudiants ?',
+            )
+          )
+            return;
+
+          api('/schools/' + encodeURIComponent(schoolName), { method: 'DELETE' })
+            .then(function () {
+              toast(schoolName + ' supprimée.', 'ok');
+              return refreshAll();
+            })
+            .catch(function (err) {
+              toast(err.message, 'err');
+            });
+        }
+
+        function renderStudents() {
+          // The shared plan editor asks for a re-render; in student mode the
+          // roster is not on screen and only the personal editor needs redrawing.
+          if (state.linkToken) {
+            renderMe();
+            return;
+          }
+
+          var body = document.getElementById('students-body');
+          clear(body);
+
+          if (!state.schools.length) {
+            body.appendChild(
+              el('div', { class: 'empty', text: 'Aucune école. Ajoutez-en une ci-dessous.' }),
+            );
+            return;
+          }
+
+          state.schools.forEach(function (school) {
+            var draft = draftFor(school.name);
+
+            var editingThisSchool =
+              state.editingSchool && state.editingSchool.name === school.name;
+
+            var swatch = el('span', { class: 'swatch' });
+            swatch.style.background = school.colorHex || 'var(--accent)';
+
+            var summary = el('summary', {}, [
+              swatch,
+              el('strong', { text: school.name }),
+              el('span', {
+                class: 'muted',
+                text: school.students.length + ' étudiant(s)',
+              }),
+              el('span', { class: 'spacer', style: 'flex:1' }),
+              el('button', {
+                class: 'ghost',
+                text: editingThisSchool ? 'Fermer' : 'Modifier',
+                onclick: function (event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  toggleSchoolEditor(school);
+                },
+              }),
+              el('button', {
+                class: 'danger',
+                text: 'Supprimer',
+                onclick: function (event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  deleteSchool(school.name);
+                },
+              }),
+            ]);
+
+            var inner = el('div', { class: 'school-body' });
+
+            if (editingThisSchool) {
+              inner.appendChild(
+                el('div', { class: 'form-box' }, [
+                  el('h3', { text: 'Modifier l’école' }),
+                  buildSchoolFields(state.editingSchool.draft),
+                  el('p', { class: 'muted', style: 'margin:.5rem 0 0' }, [
+                    el('span', {
+                      text:
+                        'Les deux images apparaissent dans l’embed Discord. ' +
+                        'Les lieux alimentent le bouton « Ma position » sur Discord.',
+                    }),
+                  ]),
+                  el('div', { class: 'actions' }, [
+                    el('button', { text: 'Enregistrer l’école', onclick: saveSchool }),
+                    el('button', {
+                      class: 'ghost',
+                      text: 'Annuler',
+                      onclick: function () {
+                        state.editingSchool = null;
+                        renderStudents();
+                      },
+                    }),
+                  ]),
+                ]),
+              );
+            }
+
+            if (!school.students.length) {
+              inner.appendChild(el('div', { class: 'empty', text: 'Aucun étudiant.' }));
+            }
+
+            school.students.forEach(function (student) {
+              var idInput = el('input', {
+                class: 'inline',
+                type: 'text',
+                value: student.discordId || '',
+                placeholder: 'ID Discord',
+                'aria-label': 'ID Discord de ' + student.name,
+              });
+              idInput.addEventListener('blur', function () {
+                saveDiscordId(school.name, student, idInput.value, idInput);
+              });
+              idInput.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') idInput.blur();
+              });
+
+              var isEditing =
+                state.editing && state.editing.key === editKey(school.name, student.name);
+
+              inner.appendChild(
+                el('div', { class: 'roster-row' }, [
+                  el('span', { class: 'name', text: student.name }),
+                  idInput,
+                  el('span', { class: 'muted', text: describePlan(student) }),
+                  el('button', {
+                    class: 'ghost',
+                    text: isEditing ? 'Fermer' : 'Horaire',
+                    onclick: function () {
+                      toggleScheduleEditor(school.name, student);
+                    },
+                  }),
+                  el('button', {
+                    class: 'danger',
+                    text: 'Retirer',
+                    onclick: function () {
+                      deleteStudent(school.name, student.name);
+                    },
+                  }),
+                ]),
+              );
+
+              if (isEditing) {
+                inner.appendChild(
+                  el('div', { class: 'form-box' }, [
+                    el('h3', { text: 'Horaire de ' + student.name }),
+                    buildPlanEditor(state.editing.plan),
+                    el('div', { class: 'actions' }, [
+                      el('button', { text: 'Enregistrer l’horaire', onclick: saveSchedule }),
+                      el('button', {
+                        class: 'ghost',
+                        text: 'Annuler',
+                        onclick: function () {
+                          state.editing = null;
+                          renderStudents();
+                        },
+                      }),
+                    ]),
+                  ]),
+                );
+              }
+            });
+
+            var form = el('div', { class: 'form-box' }, [
+              el('h3', { text: 'Ajouter un étudiant' }),
+              el('div', { class: 'field-row', style: 'margin-top:.5rem' }, [
+                el('div', {}, [
+                  el('label', { text: 'Nom' }),
+                  el('input', {
+                    type: 'text',
+                    value: draft.name,
+                    placeholder: 'Alexandre',
+                    oninput: function (event) {
+                      draft.name = event.target.value;
+                    },
+                  }),
+                ]),
+                el('div', {}, [
+                  el('label', { text: 'ID Discord (optionnel)' }),
+                  el('input', {
+                    type: 'text',
+                    value: draft.discordId,
+                    placeholder: '123456789012345678',
+                    oninput: function (event) {
+                      draft.discordId = event.target.value;
+                    },
+                  }),
+                ]),
+              ]),
+              buildPlanEditor(draft.plan),
+              el('div', { class: 'actions' }, [
+                el('button', {
+                  text: 'Ajouter l’étudiant',
+                  onclick: function () {
+                    submitStudent(school.name);
+                  },
+                }),
+                el('button', {
+                  class: 'ghost',
+                  text: 'Réinitialiser le formulaire',
+                  onclick: function () {
+                    state.drafts[school.name] = emptyDraft();
+                    renderStudents();
+                  },
+                }),
+              ]),
+            ]);
+
+            inner.appendChild(form);
+
+            var details = el('details', { class: 'school' }, [summary, inner]);
+            details.open = !!state.open[school.name];
+            details.addEventListener('toggle', function () {
+              state.open[school.name] = details.open;
+            });
+
+            body.appendChild(details);
+          });
+        }
+
+        function addSchool() {
+          var name = document.getElementById('ns-name').value.trim();
+          var colorHex = document.getElementById('ns-color').value;
+          var bannerUrl = document.getElementById('ns-banner').value.trim();
+          var thumbnailUrl = document.getElementById('ns-thumb').value.trim();
+
+          if (!name) {
+            toast('Le nom de l’école est requis.', 'err');
+            return;
+          }
+
+          var payload = { name: name, colorHex: colorHex };
+          if (bannerUrl) payload.bannerUrl = bannerUrl;
+          if (thumbnailUrl) payload.thumbnailUrl = thumbnailUrl;
+
+          api('/schools', { method: 'POST', body: payload })
+            .then(function () {
+              toast(name + ' ajoutée.', 'ok');
+              document.getElementById('ns-name').value = '';
+              document.getElementById('ns-banner').value = '';
+              document.getElementById('ns-thumb').value = '';
+              state.open[name] = true;
+              return refreshAll();
+            })
+            .catch(function (err) {
+              toast(err.message, 'err');
+            });
+        }
+
+        /* ---------------- student mode ---------------- */
+
+        function renderMe() {
+          var body = document.getElementById('me-body');
+          clear(body);
+          if (!state.mePlan) {
+            body.appendChild(el('div', { class: 'empty', text: 'Chargement…' }));
+            return;
+          }
+
+          body.appendChild(
+            el('div', { class: 'form-box' }, [
+              buildPlanEditor(state.mePlan),
+              el('div', { class: 'actions' }, [
+                el('button', {
+                  text: 'Enregistrer mon horaire',
+                  onclick: saveMySchedule,
+                }),
+                el('button', {
+                  class: 'ghost',
+                  text: 'Annuler mes changements',
+                  onclick: loadMe,
+                }),
+              ]),
+            ]),
+          );
+        }
+
+        function loadMe() {
+          return api('/me')
+            .then(function (data) {
+              document.getElementById('me-who').textContent =
+                data.student.name + ' — ' + data.school.name;
+              state.mePlan = planFromStudent(data.student);
+              renderMe();
+              setConnection('green', 'Lien valide');
+            })
+            .catch(function (err) {
+              setConnection('red', 'Lien refusé');
+              clear(document.getElementById('me-body'));
+              document
+                .getElementById('me-body')
+                .appendChild(el('div', { class: 'empty', text: err.message }));
+              toast(err.message, 'err');
+            });
+        }
+
+        function saveMySchedule() {
+          var built = planToPayload(state.mePlan);
+          if (built.invalid) {
+            toast(
+              'Chaque cours et événement doit être complet (début, fin, description).',
+              'err',
+            );
+            return;
+          }
+          if (built.cycleMissing) {
+            toast('Indiquez le lundi où commence la semaine A.', 'err');
+            return;
+          }
+
+          api('/me/schedule', { method: 'PATCH', body: built.payload })
+            .then(function () {
+              toast('Horaire enregistré. Discord est à jour.', 'ok');
+              return loadMe();
+            })
+            .catch(function (err) {
+              toast(err.message, 'err');
+            });
+        }
+
+        /* ---------------- refresh ---------------- */
+
+        function refreshStatus() {
+          return api('/status').then(function (data) {
+            state.statuses = data || [];
+            renderStatus();
+          });
+        }
+
+        function refreshAll() {
+          if (!state.token) {
+            setConnection('red', 'Mot de passe manquant');
+            return Promise.resolve();
+          }
+
+          return Promise.all([api('/status'), api('/schools'), api('/overrides')])
+            .then(function (results) {
+              state.statuses = results[0] || [];
+              state.schools = results[1] || [];
+              state.overrides = results[2] || {};
+
+              renderStatus();
+              renderOverrides();
+              renderStudents();
+              setConnection('green', 'Connecté');
+            })
+            .catch(function (err) {
+              setConnection('red', err.status === 401 ? 'Mot de passe refusé' : 'Hors ligne');
+              toast(err.message, 'err');
+            });
+        }
+
+        /* ---------------- wiring ---------------- */
+
+        document.getElementById('btn-refresh').addEventListener('click', function () {
+          refreshAll();
+        });
+
+        document
+          .getElementById('btn-clear-all')
+          .addEventListener('click', clearAllOverrides);
+
+        document.getElementById('btn-add-school').addEventListener('click', addSchool);
+
+        document.getElementById('btn-trigger').addEventListener('click', function () {
+          var button = this;
+          button.disabled = true;
+          api('/trigger-update', { method: 'POST', body: {} })
+            .then(function () {
+              toast('Mise à jour déclenchée.', 'ok');
+              return refreshAll();
+            })
+            .catch(function (err) {
+              toast(err.message, 'err');
+            })
+            .then(function () {
+              button.disabled = false;
+            });
+        });
+
+        document.getElementById('btn-save-token').addEventListener('click', function () {
+          state.token = document.getElementById('token-input').value.trim();
+          try {
+            window.localStorage.setItem(TOKEN_KEY, state.token);
+          } catch (err) {
+            toast('Impossible d’enregistrer le mot de passe localement.', 'err');
+          }
+          toast('Mot de passe enregistré.', 'ok');
+          refreshAll();
+        });
+
+        document
+          .getElementById('token-input')
+          .addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') document.getElementById('btn-save-token').click();
+          });
+
+        // A `?t=` token means the visitor came from /horaire: show only their
+        // own timetable. Everything else is enforced server-side regardless.
+        try {
+          var params = new URLSearchParams(window.location.search);
+          state.linkToken = params.get('t') || '';
+        } catch (err) {
+          state.linkToken = '';
+        }
+
+        if (state.linkToken) {
+          document.querySelector('h1').textContent = 'Mon horaire';
+          ['sec-status', 'sec-overrides', 'sec-students', 'sec-settings'].forEach(
+            function (id) {
+              document.getElementById(id).hidden = true;
+            },
+          );
+          document.getElementById('sec-me').hidden = false;
+          setConnection('yellow', 'Vérification…');
+          loadMe();
+        } else {
+          try {
+            state.token = window.localStorage.getItem(TOKEN_KEY) || '';
+          } catch (err) {
+            state.token = '';
+          }
+          document.getElementById('token-input').value = state.token;
+
+          if (!state.token) {
+            setConnection('red', 'Mot de passe manquant');
+            toast('Ajoutez votre mot de passe principal dans Réglages.', 'err');
+          }
+
+          refreshAll();
+
+          // Live status only — a full refresh would fight with open forms.
+          setInterval(function () {
+            if (!state.token) return;
+            refreshStatus().catch(function () {
+              setConnection('red', 'Hors ligne');
+            });
+          }, REFRESH_MS);
+        }
+      })();
+    </script>
+  </body>
+</html>

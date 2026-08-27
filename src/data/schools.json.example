@@ -1,0 +1,604 @@
+[
+  {
+    "name": "Montmorency",
+    "colorHex": "#5865F2",
+    "bannerUrl": "https://example.com/banniere_montmorency.png",
+    "students": [
+      {
+        "name": "Alexandre",
+        "discordId": "",
+        "schedule": {
+          "0": [],
+          "1": [
+            {
+              "startTime": "08:00",
+              "endTime": "09:45",
+              "location": "C1688"
+            },
+            {
+              "startTime": "14:25",
+              "endTime": "17:05",
+              "location": "B3436"
+            }
+          ],
+          "2": [
+            {
+              "startTime": "08:00",
+              "endTime": "10:40",
+              "location": "C3580"
+            },
+            {
+              "startTime": "11:40",
+              "endTime": "14:20",
+              "location": "A2205"
+            },
+            {
+              "startTime": "15:20",
+              "endTime": "18:00",
+              "location": "C1576"
+            }
+          ],
+          "3": [
+            {
+              "startTime": "08:55",
+              "endTime": "10:40",
+              "location": "C1633"
+            },
+            {
+              "startTime": "14:25",
+              "endTime": "17:05",
+              "location": "L2752"
+            }
+          ],
+          "4": [
+            {
+              "startTime": "08:00",
+              "endTime": "09:45",
+              "location": "C3636"
+            },
+            {
+              "startTime": "09:50",
+              "endTime": "11:35",
+              "location": "C3518"
+            },
+            {
+              "startTime": "12:35",
+              "endTime": "14:20",
+              "location": "A2918"
+            },
+            {
+              "startTime": "15:20",
+              "endTime": "18:00",
+              "location": "B3376"
+            }
+          ]
+        }
+      },
+      {
+        "name": "Francis",
+        "discordId": "",
+        "schedule": {
+          "0": [
+            {
+              "startTime": "08:00",
+              "endTime": "09:45",
+              "location": "L1760"
+            },
+            {
+              "startTime": "10:45",
+              "endTime": "13:25",
+              "location": "B3376"
+            }
+          ],
+          "1": [
+            {
+              "startTime": "16:15",
+              "endTime": "18:00",
+              "location": "B3377"
+            }
+          ],
+          "2": [
+            {
+              "startTime": "08:00",
+              "endTime": "09:45",
+              "location": "C2523"
+            },
+            {
+              "startTime": "10:45",
+              "endTime": "12:30",
+              "location": "B3376"
+            },
+            {
+              "startTime": "14:25",
+              "endTime": "17:05",
+              "location": "B3377"
+            }
+          ],
+          "3": [
+            {
+              "startTime": "10:45",
+              "endTime": "13:25",
+              "location": "B3303"
+            },
+            {
+              "startTime": "15:20",
+              "endTime": "18:00",
+              "location": "C2535"
+            }
+          ],
+          "4": [
+            {
+              "startTime": "08:00",
+              "endTime": "10:40",
+              "location": "C1637"
+            },
+            {
+              "startTime": "11:40",
+              "endTime": "14:20",
+              "location": "B3359"
+            },
+            {
+              "startTime": "16:15",
+              "endTime": "18:00",
+              "location": "B3377"
+            }
+          ]
+        }
+      },
+      {
+        "name": "Emeric",
+        "discordId": "",
+        "schedule": {
+          "0": [
+            {
+              "startTime": "08:00",
+              "endTime": "09:45",
+              "location": "B3376"
+            },
+            {
+              "startTime": "12:35",
+              "endTime": "14:20",
+              "location": "C2524"
+            }
+          ],
+          "1": [
+            {
+              "startTime": "08:00",
+              "endTime": "09:45",
+              "location": "C3518"
+            },
+            {
+              "startTime": "13:30",
+              "endTime": "15:15",
+              "location": "L1758"
+            },
+            {
+              "startTime": "16:15",
+              "endTime": "18:00",
+              "location": "C3636"
+            }
+          ],
+          "2": [
+            {
+              "startTime": "08:00",
+              "endTime": "10:40",
+              "location": "C1576"
+            }
+          ],
+          "3": [
+            {
+              "startTime": "08:00",
+              "endTime": "09:45",
+              "location": "L1760"
+            },
+            {
+              "startTime": "12:35",
+              "endTime": "14:20",
+              "location": "C2542"
+            }
+          ],
+          "4": [
+            {
+              "startTime": "08:00",
+              "endTime": "09:45",
+              "location": "CSBB1"
+            },
+            {
+              "startTime": "10:45",
+              "endTime": "13:25",
+              "location": "C3522"
+            },
+            {
+              "startTime": "15:20",
+              "endTime": "17:05",
+              "location": "C2535"
+            }
+          ]
+        }
+      },
+      {
+        "name": "Henri",
+        "discordId": "",
+        "schedule": {
+          "0": [
+            {
+              "startTime": "08:55",
+              "endTime": "11:35",
+              "location": "C1576"
+            },
+            {
+              "startTime": "12:35",
+              "endTime": "15:15",
+              "location": "C2524"
+            }
+          ],
+          "1": [
+            {
+              "startTime": "08:55",
+              "endTime": "11:35",
+              "location": "C3605"
+            },
+            {
+              "startTime": "16:15",
+              "endTime": "18:00",
+              "location": "B3300"
+            }
+          ],
+          "2": [
+            {
+              "startTime": "08:00",
+              "endTime": "10:40",
+              "location": "C1637"
+            },
+            {
+              "startTime": "12:35",
+              "endTime": "14:20",
+              "location": "C3518"
+            },
+            {
+              "startTime": "15:20",
+              "endTime": "17:05",
+              "location": "C3636"
+            }
+          ],
+          "3": [
+            {
+              "startTime": "08:00",
+              "endTime": "11:35",
+              "location": "EXTran"
+            },
+            {
+              "startTime": "13:30",
+              "endTime": "15:15",
+              "location": "C2542"
+            },
+            {
+              "startTime": "16:15",
+              "endTime": "18:00",
+              "location": "B3300"
+            }
+          ],
+          "4": [
+            {
+              "startTime": "11:40",
+              "endTime": "15:15",
+              "location": "C1570"
+            }
+          ]
+        }
+      },
+      {
+        "name": "Louis-Philippe",
+        "discordId": "",
+        "schedule": {
+          "0": [
+            {
+              "startTime": "08:00",
+              "endTime": "10:40",
+              "location": "Ultimate Frisbee"
+            },
+            {
+              "startTime": "11:40",
+              "endTime": "14:20",
+              "location": "Calcul différentiel"
+            },
+            {
+              "startTime": "15:20",
+              "endTime": "18:00",
+              "location": "Programmation en sciences"
+            }
+          ],
+          "1": [
+            {
+              "startTime": "08:00",
+              "endTime": "10:40",
+              "location": "Biologie cellulaire"
+            }
+          ],
+          "2": [
+            {
+              "startTime": "08:00",
+              "endTime": "10:40",
+              "location": "Chimie générale"
+            },
+            {
+              "startTime": "10:45",
+              "endTime": "12:30",
+              "location": "Introduction à la littérature"
+            },
+            {
+              "startTime": "14:25",
+              "endTime": "16:10",
+              "location": "Calcul différentiel"
+            }
+          ],
+          "3": [
+            {
+              "startTime": "09:50",
+              "endTime": "12:30",
+              "location": "Ultimate frisbee"
+            },
+            {
+              "startTime": "12:35",
+              "endTime": "15:15",
+              "location": "Culture anglaise et littérature"
+            }
+          ],
+          "4": [
+            {
+              "startTime": "08:00",
+              "endTime": "09:45",
+              "location": "Chimie générale"
+            },
+            {
+              "startTime": "09:50",
+              "endTime": "11:35",
+              "location": "Introduction à la littérature"
+            },
+            {
+              "startTime": "12:35",
+              "endTime": "14:20",
+              "location": "Biologie cellulaire"
+            }
+          ]
+        }
+      },
+      {
+        "name": "Tristan",
+        "discordId": "",
+        "schedule": {
+          "0": [
+            {
+              "startTime": "08:55",
+              "endTime": "12:30",
+              "location": "C1581"
+            },
+            {
+              "startTime": "14:25",
+              "endTime": "17:05",
+              "location": "C1581"
+            }
+          ],
+          "1": [
+            {
+              "startTime": "08:00",
+              "endTime": "09:45",
+              "location": "B3300"
+            },
+            {
+              "startTime": "09:50",
+              "endTime": "11:35",
+              "location": "C3588"
+            },
+            {
+              "startTime": "14:25",
+              "endTime": "17:05",
+              "location": "C1581"
+            }
+          ],
+          "2": [
+            {
+              "startTime": "08:00",
+              "endTime": "08:50",
+              "location": "C1549"
+            },
+            {
+              "startTime": "08:55",
+              "endTime": "18:00",
+              "location": "C1549"
+            }
+          ],
+          "3": [
+            {
+              "startTime": "08:00",
+              "endTime": "09:45",
+              "location": "B3300"
+            },
+            {
+              "startTime": "09:50",
+              "endTime": "11:35",
+              "location": "L1760"
+            }
+          ],
+          "4": [
+            {
+              "startTime": "11:40",
+              "endTime": "14:20",
+              "location": "A2205"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "name": "Bois-de-Boulogne",
+    "colorHex": "#3498DB",
+    "bannerUrl": "https://example.com/banniere_bdeb.png",
+    "students": [
+      {
+        "name": "Elliott",
+        "discordId": "",
+        "schedule": {
+          "0": [
+            {
+              "startTime": "09:00",
+              "endTime": "11:30",
+              "location": "Relations politiques"
+            },
+            {
+              "startTime": "12:00",
+              "endTime": "14:30",
+              "location": "Histoire de l'Antiquité"
+            }
+          ],
+          "1": [],
+          "2": [
+            {
+              "startTime": "08:30",
+              "endTime": "10:15",
+              "location": "Histoire de l'Antiquité"
+            },
+            {
+              "startTime": "12:30",
+              "endTime": "14:30",
+              "location": "Philosophie et ratio"
+            },
+            {
+              "startTime": "15:00",
+              "endTime": "17:30",
+              "location": "Pouvoir et institutions"
+            }
+          ],
+          "3": [
+            {
+              "startTime": "10:00",
+              "endTime": "12:30",
+              "location": "Mythes et magie"
+            },
+            {
+              "startTime": "14:30",
+              "endTime": "16:30",
+              "location": "Écriture et littérature"
+            }
+          ],
+          "4": [
+            {
+              "startTime": "09:00",
+              "endTime": "11:30",
+              "location": "Langue anglaise et culture"
+            },
+            {
+              "startTime": "12:30",
+              "endTime": "14:30",
+              "location": "Écriture et littérature"
+            },
+            {
+              "startTime": "14:30",
+              "endTime": "16:30",
+              "location": "Philosophie et ratio"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "name": "Dawson",
+    "colorHex": "#992D22",
+    "bannerUrl": "https://example.com/banniere_dawson.png",
+    "students": [
+      {
+        "name": "Justin",
+        "discordId": "",
+        "schedule": {
+          "0": [
+            {
+              "startTime": "10:00",
+              "endTime": "11:30",
+              "location": "Intro to Econ"
+            },
+            {
+              "startTime": "12:00",
+              "endTime": "14:00",
+              "location": "Calculus I"
+            },
+            {
+              "startTime": "14:00",
+              "endTime": "16:00",
+              "location": "Intro to Coll"
+            }
+          ],
+          "1": [
+            {
+              "startTime": "08:30",
+              "endTime": "10:00",
+              "location": "Intro to Business"
+            },
+            {
+              "startTime": "10:00",
+              "endTime": "11:30",
+              "location": "Intro to Social"
+            },
+            {
+              "startTime": "13:00",
+              "endTime": "14:30",
+              "location": "Voix narratives"
+            },
+            {
+              "startTime": "16:00",
+              "endTime": "17:30",
+              "location": "Calculus I"
+            }
+          ],
+          "2": [
+            {
+              "startTime": "10:00",
+              "endTime": "11:30",
+              "location": "Intro to Econ"
+            },
+            {
+              "startTime": "12:00",
+              "endTime": "14:00",
+              "location": "Knowledge"
+            }
+          ],
+          "3": [
+            {
+              "startTime": "10:00",
+              "endTime": "12:00",
+              "location": "Intro to Coll"
+            },
+            {
+              "startTime": "13:00",
+              "endTime": "14:30",
+              "location": "Voix narratives"
+            },
+            {
+              "startTime": "16:00",
+              "endTime": "17:30",
+              "location": "Calculus I"
+            }
+          ],
+          "4": [
+            {
+              "startTime": "08:30",
+              "endTime": "10:00",
+              "location": "Intro to Business"
+            },
+            {
+              "startTime": "10:00",
+              "endTime": "11:30",
+              "location": "Intro to Social"
+            },
+            {
+              "startTime": "12:00",
+              "endTime": "14:00",
+              "location": "Knowledge"
+            }
+          ]
+        }
+      }
+    ]
+  }
+]

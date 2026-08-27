@@ -1,0 +1,25 @@
+node_modules/
+dist/
+.env
+
+# Runtime data files — keep the checked-in examples
+data/*.json
+!data/*.example.json
+
+# Daily overrides are regenerated at runtime; schools.json is config and is committed
+src/data/overrides.json
+
+# Half-written files from an interrupted atomic save
+src/data/*.tmp
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+# Local Claude Code settings (bypassPermissions is per-machine)
+.claude/

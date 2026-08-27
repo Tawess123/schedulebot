@@ -1,0 +1,10 @@
+services:
+  schedulebot:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      # schools.json and overrides.json live here, so they survive a rebuild.
+      - ./src/data:/app/src/data
+    ports:
+      - '${WEB_PORT:-3000}:${WEB_PORT:-3000}'
